@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+:root {
+  /* Marca Brandon Network (base inferida de bblatam.com, +20% moderno) */
+  --navy: #0b1b2e; /* fondo base */
+  --navy-2: #11243b; /* cards / sidebar */
+  --ivory: #f6f3ec; /* superficies claras / texto sobre oscuro */
+  --gold: #c2a15b; /* acento puntual */
+  --gold-soft: #d9c291;
+  --white: #ffffff;
+  --text-muted: #8fa0b4;
+  --border: #21344c;
+  /* semánticos de mercado, en tono apagado */
+  --up: #3fb783;
+  --down: #d46a66;
+
+  --background: var(--ivory);
+  --foreground: var(--navy);
+}
+
+@theme inline {
+  --color-navy: var(--navy);
+  --color-navy-2: var(--navy-2);
+  --color-ivory: var(--ivory);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-text-muted: var(--text-muted);
+  --color-line: var(--border);
+  --color-up: var(--up);
+  --color-down: var(--down);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-instrument-serif);
+
+  --radius-card: 16px;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* Titulares editoriales */
+.font-display {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Números / tickers / montos */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Microinteracción de carga */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.4s ease-out both;
+}
+
+/* --- Landing: efectos --- */
+
+/* Aurora: blobs dorados que flotan lento */
+@keyframes aurora-1 {
+  0%, 100% { transform: translate(-50%, 0) scale(1); }
+  50% { transform: translate(-40%, 4%) scale(1.15); }
+}
+@keyframes aurora-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(8%, -6%) scale(1.1); }
+}
+.aurora-1 { animation: aurora-1 14s ease-in-out infinite; }
+.aurora-2 { animation: aurora-2 18s ease-in-out infinite; }
+
+/* Ticker marquee */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+/* Shimmer en línea de acento */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Reveal on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Grain sutil */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-1, .aurora-2, .animate-marquee { animation: none; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
