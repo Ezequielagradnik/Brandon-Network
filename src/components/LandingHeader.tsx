@@ -3,13 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { Lang } from "@/lib/i18n";
 
-const LINKS = [
-  { href: "#adentro", label: "La plataforma" },
-  { href: "#funciona", label: "Cómo funciona" },
-];
-
-export default function LandingHeader() {
+export default function LandingHeader({
+  nav,
+  lang,
+  setLang,
+}: {
+  nav: { platform: string; how: string; access: string };
+  lang: Lang;
+  setLang: (l: Lang) => void;
+}) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -18,6 +22,11 @@ export default function LandingHeader() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const links = [
+    { href: "#adentro", label: nav.platform },
+    { href: "#funciona", label: nav.how },
+  ];
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:pt-5">
@@ -28,7 +37,6 @@ export default function LandingHeader() {
             : "border-white/10 bg-navy-2/55 backdrop-blur-lg"
         }`}
       >
-        {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
             src="/brand/brandon-network-white.png"
@@ -40,9 +48,8 @@ export default function LandingHeader() {
           />
         </Link>
 
-        {/* Links centrales */}
         <div className="hidden items-center gap-7 md:flex">
-          {LINKS.map((l) => (
+          {links.map((l) => (
             <a
               key={l.href}
               href={l.href}
@@ -53,17 +60,36 @@ export default function LandingHeader() {
           ))}
         </div>
 
-        {/* CTA */}
-        <Link
-          href="/login"
-          className="group inline-flex items-center gap-2 rounded-full bg-ivory px-5 py-2.5 text-sm font-medium text-navy transition-all hover:shadow-[0_0_30px_-6px_rgba(194,161,91,0.6)]"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M5 21a7 7 0 0 1 14 0" />
-          </svg>
-          Acceder
-        </Link>
+        <div className="flex items-center gap-2.5">
+          {/* Toggle de idioma */}
+          <div className="flex items-center rounded-full border border-white/12 p-0.5 text-[11px] font-medium">
+            {(["es", "en"] as Lang[]).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                aria-pressed={lang === l}
+                className={`rounded-full px-2.5 py-1 uppercase tracking-wide transition-colors ${
+                  lang === l
+                    ? "bg-ivory text-navy"
+                    : "text-text-muted hover:text-ivory"
+                }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+
+          <Link
+            href="/login"
+            className="group inline-flex items-center gap-2 rounded-full bg-ivory px-5 py-2.5 text-sm font-medium text-navy transition-all hover:shadow-[0_0_30px_-6px_rgba(194,161,91,0.6)]"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M5 21a7 7 0 0 1 14 0" />
+            </svg>
+            {nav.access}
+          </Link>
+        </div>
       </nav>
     </div>
   );

@@ -86,6 +86,12 @@ body {
 .aurora-1 { animation: aurora-1 14s ease-in-out infinite; }
 .aurora-2 { animation: aurora-2 18s ease-in-out infinite; }
 
+/* Halo cónico que gira lento (detrás del titular) */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spin-slow 28s linear infinite; }
+
 /* Ticker marquee */
 @keyframes marquee {
   from { transform: translateX(0); }
@@ -148,7 +154,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-1, .aurora-2, .animate-marquee, .shimmer-gold { animation: none; }
+  .aurora-1, .aurora-2, .animate-marquee, .shimmer-gold, .animate-spin-slow { animation: none; }
   .shimmer-gold { color: var(--gold-soft); -webkit-text-fill-color: var(--gold-soft); }
   .reveal { opacity: 1; transform: none; transition: none; }
 }
