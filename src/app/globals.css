@@ -105,6 +105,24 @@ body {
   100% { background-position: 200% 0; }
 }
 
+/* Palabra de acento con barrido dorado sutil */
+.shimmer-gold {
+  background: linear-gradient(
+    100deg,
+    var(--gold) 20%,
+    var(--gold-soft) 40%,
+    #fbf1d8 50%,
+    var(--gold-soft) 60%,
+    var(--gold) 80%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 7s linear infinite;
+}
+
 /* Reveal on scroll */
 .reveal {
   opacity: 0;
@@ -130,6 +148,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-1, .aurora-2, .animate-marquee { animation: none; }
+  .aurora-1, .aurora-2, .animate-marquee, .shimmer-gold { animation: none; }
+  .shimmer-gold { color: var(--gold-soft); -webkit-text-fill-color: var(--gold-soft); }
   .reveal { opacity: 1; transform: none; transition: none; }
 }

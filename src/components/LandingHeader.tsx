@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const LINKS = [
-  { href: "#plataforma", label: "Plataforma" },
-  { href: "#nosotros", label: "Nosotros" },
+  { href: "#adentro", label: "La plataforma" },
+  { href: "#funciona", label: "Cómo funciona" },
 ];
 
 export default function LandingHeader() {
@@ -31,12 +31,12 @@ export default function LandingHeader() {
         {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
-            src="/brand/brandon-network-white.svg"
+            src="/brand/brandon-network-white.png"
             alt="Brandon Network"
-            width={120}
-            height={50}
+            width={1548}
+            height={562}
             priority
-            className="h-auto w-24"
+            className="h-auto w-28"
           />
         </Link>
 
@@ -62,7 +62,7 @@ export default function LandingHeader() {
             <circle cx="12" cy="8" r="4" />
             <path d="M5 21a7 7 0 0 1 14 0" />
           </svg>
-          Ingresar
+          Acceder
         </Link>
       </nav>
     </div>

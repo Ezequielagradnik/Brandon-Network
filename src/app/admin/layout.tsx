@@ -30,11 +30,11 @@ export default async function AdminLayout({
       <header className="flex items-center justify-between border-b border-line bg-navy px-8 py-4">
         <div className="flex items-center gap-4">
           <Image
-            src="/brand/brandon-network-white.svg"
+            src="/brand/brandon-network-white.png"
             alt="Brandon Network"
-            width={110}
-            height={45}
-            className="h-auto w-24"
+            width={1548}
+            height={562}
+            className="h-auto w-28"
           />
           <span className="rounded-full border border-gold/40 px-2.5 py-0.5 text-[11px] font-medium tracking-wide text-gold-soft">
             ADMIN

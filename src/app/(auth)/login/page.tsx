@@ -13,12 +13,12 @@ export default function LoginPage() {
 
       <div className="animate-fade-up flex w-full max-w-sm flex-col items-center">
         <Image
-          src="/brand/brandon-network-white.svg"
+          src="/brand/brandon-network-white.png"
           alt="Brandon Network"
-          width={220}
-          height={90}
+          width={1548}
+          height={562}
           priority
-          className="h-auto w-52"
+          className="h-auto w-56"
         />
 
         <p className="mt-10 text-center text-lg leading-relaxed text-text-muted">
