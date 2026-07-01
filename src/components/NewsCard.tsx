@@ -1,17 +1,25 @@
 import type { NewsItem } from "@/lib/mock";
 
-function relativeTime(min: number) {
-  if (min < 60) return `hace ${min} min`;
+export type NewsLabels = { agoMin: string; agoH: string };
+
+function relativeTime(min: number, labels: NewsLabels) {
+  if (min < 60) return labels.agoMin.replace("{n}", String(min));
   const h = Math.floor(min / 60);
-  return `hace ${h} h`;
+  return labels.agoH.replace("{n}", String(h));
 }
 
-export default function NewsCard({ item }: { item: NewsItem }) {
+export default function NewsCard({
+  item,
+  labels,
+}: {
+  item: NewsItem;
+  labels: NewsLabels;
+}) {
   return (
     <article className="group flex cursor-pointer flex-col rounded-[var(--radius-card)] border border-navy/10 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-[0_8px_30px_-12px_rgba(11,27,46,0.18)]">
       <div className="flex items-center justify-between text-xs">
         <span className="font-medium text-navy/70">{item.source}</span>
-        <span className="tabular text-navy/45">{relativeTime(item.minutesAgo)}</span>
+        <span className="tabular text-navy/45">{relativeTime(item.minutesAgo, labels)}</span>
       </div>
       <h3 className="mt-3 flex-1 text-[15px] font-medium leading-snug text-navy">
         {item.title}

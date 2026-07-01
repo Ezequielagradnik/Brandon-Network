@@ -7,27 +7,44 @@ const STATUS_STYLES: Record<IrsRow["status"], string> = {
   "En revisión": "bg-down/10 text-down border-down/20",
 };
 
-function StatusBadge({ status }: { status: IrsRow["status"] }) {
+export type IrsLabels = {
+  cols: { client: string; form: string; status: string; updated: string; detail: string };
+  status: Record<string, string>;
+};
+
+function StatusBadge({
+  status,
+  label,
+}: {
+  status: IrsRow["status"];
+  label: string;
+}) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[status]}`}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
-      {status}
+      {label}
     </span>
   );
 }
 
-export default function IrsTable({ rows }: { rows: IrsRow[] }) {
+export default function IrsTable({
+  rows,
+  labels,
+}: {
+  rows: IrsRow[];
+  labels: IrsLabels;
+}) {
   return (
     <div className="animate-fade-up overflow-hidden rounded-[var(--radius-card)] border border-navy/10 bg-white">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-navy/10 text-left text-xs uppercase tracking-wide text-navy/45">
-            <th className="px-6 py-4 font-medium">Cliente</th>
-            <th className="px-6 py-4 font-medium">Formulario</th>
-            <th className="px-6 py-4 font-medium">Estado</th>
-            <th className="px-6 py-4 font-medium">Actualizado</th>
+            <th className="px-6 py-4 font-medium">{labels.cols.client}</th>
+            <th className="px-6 py-4 font-medium">{labels.cols.form}</th>
+            <th className="px-6 py-4 font-medium">{labels.cols.status}</th>
+            <th className="px-6 py-4 font-medium">{labels.cols.updated}</th>
             <th className="px-6 py-4" />
           </tr>
         </thead>
@@ -40,12 +57,15 @@ export default function IrsTable({ rows }: { rows: IrsRow[] }) {
               <td className="px-6 py-4 font-medium text-navy">{row.client}</td>
               <td className="tabular px-6 py-4 text-navy/70">{row.form}</td>
               <td className="px-6 py-4">
-                <StatusBadge status={row.status} />
+                <StatusBadge
+                  status={row.status}
+                  label={labels.status[row.status] ?? row.status}
+                />
               </td>
               <td className="tabular px-6 py-4 text-navy/55">{row.updated}</td>
               <td className="px-6 py-4 text-right">
                 <span className="text-xs text-navy/30 transition-colors group-hover:text-gold">
-                  Ver detalle →
+                  {labels.cols.detail} →
                 </span>
               </td>
             </tr>

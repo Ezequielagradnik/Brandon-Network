@@ -2,35 +2,22 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import LandingHeader from "@/components/LandingHeader";
 import Reveal from "@/components/Reveal";
 import ScrollProgress from "@/components/ScrollProgress";
 import HeroGlow from "@/components/HeroGlow";
 import TiltCard from "@/components/TiltCard";
-import { dict, type Lang } from "@/lib/i18n";
+import { useLang } from "@/components/LangProvider";
 
 const PILLAR_ICONS = [<IconNews key="n" />, <IconIrs key="i" />, <IconVideo key="v" />];
 
 export default function Landing() {
-  const [lang, setLangState] = useState<Lang>("es");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("bn-lang");
-    if (saved === "en" || saved === "es") setLangState(saved);
-  }, []);
-
-  function setLang(l: Lang) {
-    setLangState(l);
-    localStorage.setItem("bn-lang", l);
-  }
-
-  const t = dict[lang];
+  const { t } = useLang();
 
   return (
     <div className="grain min-h-screen overflow-x-hidden bg-navy text-ivory">
       <ScrollProgress />
-      <LandingHeader nav={t.nav} lang={lang} setLang={setLang} />
+      <LandingHeader />
 
       {/* 1. Hero */}
       <section className="relative overflow-hidden">

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/components/LangProvider";
 
 export default function GoogleButton() {
+  const { t } = useLang();
   const [loading, setLoading] = useState(false);
 
   async function signIn() {
@@ -28,7 +30,7 @@ export default function GoogleButton() {
       className="group flex w-full items-center justify-center gap-3 rounded-full border border-white/15 bg-white/[0.04] px-6 py-3.5 text-sm font-medium text-ivory transition-all hover:border-white/30 hover:bg-white/[0.08] disabled:opacity-60"
     >
       <GoogleIcon />
-      {loading ? "Conectando…" : "Continuar con Google"}
+      {loading ? t.login.connecting : t.login.google}
     </button>
   );
 }

@@ -3,17 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { Lang } from "@/lib/i18n";
+import { useLang } from "@/components/LangProvider";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
-export default function LandingHeader({
-  nav,
-  lang,
-  setLang,
-}: {
-  nav: { platform: string; how: string; access: string };
-  lang: Lang;
-  setLang: (l: Lang) => void;
-}) {
+export default function LandingHeader() {
+  const { t } = useLang();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -24,8 +18,8 @@ export default function LandingHeader({
   }, []);
 
   const links = [
-    { href: "#adentro", label: nav.platform },
-    { href: "#funciona", label: nav.how },
+    { href: "#adentro", label: t.nav.platform },
+    { href: "#funciona", label: t.nav.how },
   ];
 
   return (
@@ -61,23 +55,7 @@ export default function LandingHeader({
         </div>
 
         <div className="flex items-center gap-2.5">
-          {/* Toggle de idioma */}
-          <div className="flex items-center rounded-full border border-white/12 p-0.5 text-[11px] font-medium">
-            {(["es", "en"] as Lang[]).map((l) => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                aria-pressed={lang === l}
-                className={`rounded-full px-2.5 py-1 uppercase tracking-wide transition-colors ${
-                  lang === l
-                    ? "bg-ivory text-navy"
-                    : "text-text-muted hover:text-ivory"
-                }`}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
+          <LanguageSwitcher variant="dark" />
 
           <Link
             href="/login"
@@ -87,7 +65,7 @@ export default function LandingHeader({
               <circle cx="12" cy="8" r="4" />
               <path d="M5 21a7 7 0 0 1 14 0" />
             </svg>
-            {nav.access}
+            {t.nav.access}
           </Link>
         </div>
       </nav>

@@ -1,29 +1,37 @@
 import PageHeader from "@/components/PageHeader";
 import AdminStats from "@/components/AdminStats";
-import { ADMIN_USERS } from "@/lib/mock";
+import { ADMIN_METRICS, ADMIN_USERS } from "@/lib/mock";
+import { getT } from "@/lib/lang";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const t = await getT();
+
+  const metrics = ADMIN_METRICS.map((m, i) => ({
+    label: t.admin.metrics[i] ?? m.label,
+    value: m.value,
+  }));
+
   return (
     <div className="mx-auto max-w-6xl px-8 py-10">
       <PageHeader
-        title="Panel de"
-        accent="administración"
-        subtitle="Métricas de uso y gestión de usuarios de Brandon Network."
+        title={t.admin.title}
+        accent={t.admin.accent}
+        subtitle={t.admin.subtitle}
       />
 
       <div className="mt-8">
-        <AdminStats />
+        <AdminStats metrics={metrics} />
       </div>
 
-      <h2 className="mt-12 mb-4 font-display text-2xl text-navy">Usuarios</h2>
+      <h2 className="mt-12 mb-4 font-display text-2xl text-navy">{t.admin.usersTitle}</h2>
       <div className="animate-fade-up overflow-hidden rounded-[var(--radius-card)] border border-navy/10 bg-white">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-navy/10 text-left text-xs uppercase tracking-wide text-navy/45">
-              <th className="px-6 py-4 font-medium">Usuario</th>
-              <th className="px-6 py-4 font-medium">Email</th>
-              <th className="px-6 py-4 font-medium">Rol</th>
-              <th className="px-6 py-4 font-medium">Estado</th>
+              <th className="px-6 py-4 font-medium">{t.admin.cols.user}</th>
+              <th className="px-6 py-4 font-medium">{t.admin.cols.email}</th>
+              <th className="px-6 py-4 font-medium">{t.admin.cols.role}</th>
+              <th className="px-6 py-4 font-medium">{t.admin.cols.status}</th>
             </tr>
           </thead>
           <tbody>
@@ -49,11 +57,9 @@ export default function AdminPage() {
                   <span className="inline-flex items-center gap-1.5 text-xs text-navy/60">
                     <span
                       className="h-1.5 w-1.5 rounded-full"
-                      style={{
-                        background: u.active ? "var(--up)" : "var(--text-muted)",
-                      }}
+                      style={{ background: u.active ? "var(--up)" : "var(--text-muted)" }}
                     />
-                    {u.active ? "Activo" : "Inactivo"}
+                    {u.active ? t.admin.active : t.admin.inactive}
                   </span>
                 </td>
               </tr>

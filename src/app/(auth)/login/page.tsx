@@ -1,7 +1,11 @@
 import Image from "next/image";
 import GoogleButton from "@/components/GoogleButton";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { getT } from "@/lib/lang";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const t = await getT();
+
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-navy px-6">
       {/* halo dorado sutil */}
@@ -10,6 +14,10 @@ export default function LoginPage() {
         className="pointer-events-none absolute -top-40 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full opacity-[0.07] blur-3xl"
         style={{ background: "radial-gradient(circle, var(--gold), transparent 70%)" }}
       />
+
+      <div className="absolute right-5 top-5">
+        <LanguageSwitcher variant="dark" />
+      </div>
 
       <div className="animate-fade-up flex w-full max-w-sm flex-col items-center">
         <Image
@@ -22,18 +30,19 @@ export default function LoginPage() {
         />
 
         <p className="mt-10 text-center text-lg leading-relaxed text-text-muted">
-          Preservando tu{" "}
-          <span className="font-display italic text-ivory">legado</span>.
+          {t.login.phrasePre}{" "}
+          <span className="font-display italic text-ivory">
+            {t.login.phraseAccent}
+          </span>
+          .
         </p>
 
         <div className="mt-10 w-full">
           <GoogleButton />
         </div>
 
-        <p className="mt-8 text-center text-xs leading-relaxed text-text-muted/70">
-          Acceso exclusivo para clientes y administradores
-          <br />
-          de Brandon Network.
+        <p className="mt-8 max-w-xs text-center text-xs leading-relaxed text-text-muted/70">
+          {t.login.note}
         </p>
       </div>
 

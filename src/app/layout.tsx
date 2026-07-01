@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
+import { LangProvider } from "@/components/LangProvider";
+import { getLang } from "@/lib/lang";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -20,17 +22,21 @@ export const metadata: Metadata = {
   description: "Preservando tu legado.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const lang = await getLang();
+
   return (
     <html
-      lang="es"
+      lang={lang}
       className={`${inter.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <LangProvider initial={lang}>{children}</LangProvider>
+      </body>
     </html>
   );
 }

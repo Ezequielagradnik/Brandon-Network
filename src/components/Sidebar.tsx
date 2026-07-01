@@ -5,17 +5,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "@/app/auth/actions";
+import { useLang } from "@/components/LangProvider";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type NavItem = {
   href: string;
-  label: string;
+  key: "noticias" | "irs" | "videos";
   icon: React.ReactNode;
 };
 
 const NAV: NavItem[] = [
-  { href: "/dashboard/noticias", label: "Noticias", icon: <IconNews /> },
-  { href: "/dashboard/irs", label: "IRS", icon: <IconIrs /> },
-  { href: "/dashboard/videos", label: "Videos", icon: <IconVideo /> },
+  { href: "/dashboard/noticias", key: "noticias", icon: <IconNews /> },
+  { href: "/dashboard/irs", key: "irs", icon: <IconIrs /> },
+  { href: "/dashboard/videos", key: "videos", icon: <IconVideo /> },
 ];
 
 export type SidebarUser = {
@@ -27,6 +29,7 @@ export type SidebarUser = {
 
 export default function Sidebar({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
+  const { t } = useLang();
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -74,8 +77,8 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
         )}
         <button
           onClick={toggle}
-          aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
-          title={collapsed ? "Expandir" : "Colapsar"}
+          aria-label={collapsed ? t.sidebar.expand : t.sidebar.collapse}
+          title={collapsed ? t.sidebar.expand : t.sidebar.collapse}
           className={`flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-text-muted transition-colors hover:bg-white/[0.05] hover:text-ivory ${
             collapsed ? "mx-auto" : ""
           }`}
@@ -88,11 +91,12 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
       <nav className="mt-12 flex flex-1 flex-col gap-1">
         {NAV.map((item) => {
           const active = pathname.startsWith(item.href);
+          const label = t.sidebar[item.key];
           return (
             <Link
               key={item.href}
               href={item.href}
-              title={collapsed ? item.label : undefined}
+              title={collapsed ? label : undefined}
               className={`group relative flex items-center gap-3 rounded-xl py-2.5 text-sm transition-all ${
                 collapsed ? "justify-center px-0" : "px-3"
               } ${
@@ -107,7 +111,7 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
               <span className={active ? "text-gold" : "text-text-muted group-hover:text-ivory"}>
                 {item.icon}
               </span>
-              {!collapsed && item.label}
+              {!collapsed && label}
             </Link>
           );
         })}
@@ -115,7 +119,7 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
         {user.role === "admin" && (
           <Link
             href="/admin"
-            title={collapsed ? "Admin" : undefined}
+            title={collapsed ? t.sidebar.admin : undefined}
             className={`group mt-2 flex items-center gap-3 rounded-xl py-2.5 text-sm transition-all ${
               collapsed ? "justify-center px-0" : "px-3"
             } ${
@@ -127,13 +131,19 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
             <span className={isAdminActive ? "text-gold" : ""}>
               <IconAdmin />
             </span>
-            {!collapsed && "Admin"}
+            {!collapsed && t.sidebar.admin}
           </Link>
         )}
       </nav>
 
-      {/* Perfil */}
+      {/* Idioma + Perfil */}
       <div className="mt-6 border-t border-line pt-5">
+        {!collapsed && (
+          <div className="mb-4 flex justify-center">
+            <LanguageSwitcher variant="dark" />
+          </div>
+        )}
+
         <div
           className={`flex items-center gap-3 ${collapsed ? "justify-center" : "px-1"}`}
         >
@@ -165,13 +175,13 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
         <form action={signOut} className="mt-3">
           <button
             type="submit"
-            title={collapsed ? "Cerrar sesión" : undefined}
+            title={collapsed ? t.sidebar.logout : undefined}
             className={`flex w-full items-center gap-2 rounded-lg py-2 text-xs text-text-muted transition-colors hover:bg-white/[0.04] hover:text-ivory ${
               collapsed ? "justify-center px-0" : "px-3"
             }`}
           >
             <IconLogout />
-            {!collapsed && "Cerrar sesión"}
+            {!collapsed && t.sidebar.logout}
           </button>
         </form>
       </div>
@@ -179,20 +189,10 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
   );
 }
 
-/* --- iconos (line, 18px) --- */
+/* --- iconos --- */
 function IconChevron({ open }: { open: boolean }) {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`transition-transform duration-300 ${open ? "" : "rotate-180"}`}
-    >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${open ? "" : "rotate-180"}`}>
       <path d="M15 6l-6 6 6 6" />
     </svg>
   );

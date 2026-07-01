@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/auth/actions";
+import { getT } from "@/lib/lang";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default async function AdminLayout({
   children,
@@ -25,6 +27,8 @@ export default async function AdminLayout({
   // Doble gate: además del middleware, cortamos en el server.
   if (profile?.role !== "admin") redirect("/dashboard/noticias");
 
+  const t = await getT();
+
   return (
     <div className="min-h-screen bg-ivory text-navy">
       <header className="flex items-center justify-between border-b border-line bg-navy px-8 py-4">
@@ -41,15 +45,16 @@ export default async function AdminLayout({
           </span>
         </div>
         <div className="flex items-center gap-5 text-sm">
+          <LanguageSwitcher variant="dark" />
           <Link
             href="/dashboard/noticias"
             className="text-text-muted transition-colors hover:text-ivory"
           >
-            ← Volver al panel
+            ← {t.admin.back}
           </Link>
           <form action={signOut}>
             <button className="text-text-muted transition-colors hover:text-ivory">
-              Cerrar sesión
+              {t.sidebar.logout}
             </button>
           </form>
         </div>
