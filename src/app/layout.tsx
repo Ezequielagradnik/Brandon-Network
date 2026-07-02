@@ -25,8 +25,24 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://brandon-network.vercel.app"),
   title: "Brandon Network",
-  description: "Preservando tu legado.",
+  description:
+    "Tu asistente de IA para finanzas, temas legales y datos tributarios. Un producto de Brandon Latam.",
+  openGraph: {
+    title: "Brandon Network",
+    description:
+      "Tu asistente de IA para finanzas, temas legales y datos tributarios.",
+    siteName: "Brandon Network",
+    type: "website",
+    locale: "es_ES",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Brandon Network",
+    description:
+      "Tu asistente de IA para finanzas, temas legales y datos tributarios.",
+  },
 };
 
 export default async function RootLayout({
