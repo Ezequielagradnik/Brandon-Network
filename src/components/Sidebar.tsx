@@ -10,12 +10,13 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type NavItem = {
   href: string;
-  key: "asistente";
+  key: "asistente" | "noticias";
   icon: React.ReactNode;
 };
 
 const NAV: NavItem[] = [
   { href: "/dashboard", key: "asistente", icon: <IconChat /> },
+  { href: "/dashboard/noticias", key: "noticias", icon: <IconNews /> },
 ];
 
 export type SidebarUser = {
@@ -203,6 +204,15 @@ function IconChat() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z" />
       <path d="M8.5 11h7M8.5 14h4" />
+    </svg>
+  );
+}
+function IconNews() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 5h13v14H4z" />
+      <path d="M17 8h3v9a2 2 0 0 1-2 2" />
+      <path d="M7 9h7M7 13h7M7 16h4" />
     </svg>
   );
 }
