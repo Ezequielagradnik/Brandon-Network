@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLang } from "@/components/LangProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -130,18 +129,19 @@ export default function Hero() {
         className="-z-10 object-cover"
       />
 
-      {/* Top bar responsive: logo a la izquierda, controles a la derecha */}
-      <header className="relative z-10 flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
-        <Image
-          src="/brand/brandon-network-navy.png"
-          alt="Brandon Network"
-          width={1548}
-          height={562}
-          priority
-          className="h-9 w-auto shrink-0 sm:h-12"
-        />
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="relative">
+      {/* Top bar: logo centrado en desktop, barra (logo izq + controles der) en mobile */}
+      <header className="relative z-10 px-4 py-4 sm:px-6">
+        <div className="flex items-center justify-between sm:justify-center">
+          <Image
+            src="/brand/brandon-network-navy.png"
+            alt="Brandon Network"
+            width={1548}
+            height={562}
+            priority
+            className="h-9 w-auto shrink-0 sm:h-14"
+          />
+          <div className="flex items-center gap-2 sm:absolute sm:right-6 sm:top-4 sm:gap-3">
+            <div className="relative">
           <button
             type="button"
             aria-haspopup="listbox"
@@ -186,8 +186,9 @@ export default function Hero() {
             </ul>
           )}
         </div>
-        <Link
-          href="/login"
+        <button
+          type="button"
+          onClick={() => setGateOpen(true)}
           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-center text-[14px] font-semibold tracking-wide shadow-[0_14px_34px_-12px_rgba(20,34,74,0.55)] ring-1 ring-[#14224a]/10 transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_42px_-12px_rgba(20,34,74,0.7)] sm:h-12 sm:px-6"
           style={{ color: NAVY }}
         >
@@ -196,7 +197,8 @@ export default function Hero() {
             <path d="M5 21a7 7 0 0 1 14 0" />
           </svg>
           {t.nav.access}
-        </Link>
+        </button>
+          </div>
         </div>
       </header>
 
