@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/components/LangProvider";
+import SuggestionCarousel from "@/components/SuggestionCarousel";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -143,17 +144,11 @@ export default function AsistentePage() {
         className="pb-4 pt-2"
       >
         {empty && (
-          <div className="no-scrollbar mb-2 flex gap-2 overflow-x-auto pb-1">
-            {t.heroAI.suggestions.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => send(s)}
-                className="shrink-0 whitespace-nowrap rounded-full border border-navy/15 bg-white px-3.5 py-1.5 text-xs text-navy/70 transition-colors hover:border-gold/40 hover:text-navy"
-              >
-                {s}
-              </button>
-            ))}
+          <div className="mb-2 px-1">
+            <SuggestionCarousel
+              items={t.heroAI.suggestions}
+              onSelect={(s) => send(s)}
+            />
           </div>
         )}
         <div className="flex items-end gap-2 rounded-2xl border border-navy/15 bg-white p-2 shadow-[0_8px_30px_-16px_rgba(11,27,46,0.25)] transition-colors focus-within:border-gold/50">

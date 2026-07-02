@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useLang } from "@/components/LangProvider";
 import { createClient } from "@/lib/supabase/client";
+import SuggestionCarousel from "@/components/SuggestionCarousel";
 import { type Lang } from "@/lib/i18n";
 
 const NAVY = "#14224a";
@@ -244,21 +245,14 @@ export default function Hero() {
           />
           <div className="relative flex flex-col gap-3 rounded-2xl border border-white/60 bg-white/35 p-3 shadow-[0_20px_60px_-20px_rgba(20,34,74,0.35),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl transition-colors focus-within:bg-white/45">
             {/* Sugerencias */}
-            <div className="flex flex-wrap gap-2 px-1">
-              {t.heroAI.suggestions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => {
-                    localStorage.setItem("bn-pending-prompt", s);
-                    setGateOpen(true);
-                  }}
-                  className="rounded-full border border-white/70 bg-white/60 px-3 py-1.5 text-[12px] font-medium transition-colors hover:bg-white"
-                  style={{ color: NAVY }}
-                >
-                  {s}
-                </button>
-              ))}
+            <div className="px-1">
+              <SuggestionCarousel
+                items={t.heroAI.suggestions}
+                onSelect={(s) => {
+                  localStorage.setItem("bn-pending-prompt", s);
+                  setGateOpen(true);
+                }}
+              />
             </div>
 
             {/* Input + enviar */}
