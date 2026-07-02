@@ -57,32 +57,33 @@ async function dolarBlue(): Promise<Quote | null> {
 async function googleNews(): Promise<News[]> {
   try {
     const r = await fetch(
-      "https://news.google.com/rss/search?q=stock%20market%20OR%20mercados%20financieros&hl=es-419&gl=US&ceid=US:es-419",
-      {
-        headers: { "User-Agent": "Mozilla/5.0" },
-        cache: "no-store",
-      },
+      "https://news.google.com/rss/search?q=" +
+        encodeURIComponent("mercados financieros OR wall street OR acciones when:2d") +
+        "&hl=es-419&gl=US&ceid=US:es-419",
+      { headers: { "User-Agent": "Mozilla/5.0" }, cache: "no-store" },
     );
     if (!r.ok) return [];
     const xml = await r.text();
-    const items = xml.split("<item>").slice(1, 13);
+    const items = xml.split("<item>").slice(1);
     const pick = (block: string, tag: string) => {
       const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`));
-      return m
-        ? m[1].replace(/<!\[CDATA\[|\]\]>/g, "").trim()
-        : "";
+      return m ? m[1].replace(/<!\[CDATA\[|\]\]>/g, "").trim() : "";
     };
     return items
       .map((block) => {
         const rawTitle = pick(block, "title");
         const source = pick(block, "source");
-        const title = source ? rawTitle.replace(new RegExp(` - ${source}$`), "") : rawTitle;
+        const title = source
+          ? rawTitle.replace(new RegExp(` - ${source}$`), "")
+          : rawTitle;
         const link = pick(block, "link");
         const pub = pick(block, "pubDate");
         const time = pub ? Math.floor(Date.parse(pub) / 1000) : 0;
         return { title, publisher: source, link, time };
       })
-      .filter((n) => n.title && n.link);
+      .filter((n) => n.title && n.link && n.time > 0)
+      .sort((a, b) => b.time - a.time)
+      .slice(0, 12);
   } catch {
     return [];
   }

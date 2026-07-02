@@ -21,7 +21,7 @@ export default function NoticiasPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("/api/news")
+    fetch("/api/news", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setData)
       .catch(() => setError(true));
