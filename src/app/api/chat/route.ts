@@ -18,7 +18,8 @@ Reglas:
 Herramientas de datos públicos disponibles:
 - "sec_edgar_search": buscar documentos (filings) de empresas en la SEC de EE.UU. vía EDGAR.
 - "treasury_rates_of_exchange": tasas de cambio oficiales del Tesoro de EE.UU. para convertir moneda extranjera a USD.
-Usá estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, citá la fuente (SEC EDGAR / U.S. Treasury) y la fecha del dato.`;
+- "courtlistener_search": buscar jurisprudencia y fallos judiciales de EE.UU. (federal y estatal) por tema o partes.
+Usá estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, citá la fuente (SEC EDGAR / U.S. Treasury / CourtListener) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.`;
 
 const tools: Anthropic.Tool[] = [
   {
@@ -57,6 +58,21 @@ const tools: Anthropic.Tool[] = [
       required: [],
     },
   },
+  {
+    name: "courtlistener_search",
+    description:
+      "Busca jurisprudencia y opiniones judiciales de EE.UU. (federal y estatal) en CourtListener / Free Law Project. Útil para encontrar antecedentes sobre temas legales, fiscales o patrimoniales (trusts, herencias, tributación de no residentes, etc.). Devuelve caso, tribunal, fecha y enlace.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Tema o partes a buscar, por ejemplo 'trust taxation nonresident'.",
+        },
+      },
+      required: ["query"],
+    },
+  },
 ];
 
 async function secEdgarSearch(input: { query: string; forms?: string }) {
@@ -92,11 +108,40 @@ async function treasuryRates(input: { country?: string }) {
   return JSON.stringify(json?.data ?? []);
 }
 
+async function courtListenerSearch(input: { query: string }) {
+  const params = new URLSearchParams({
+    q: input.query,
+    type: "o",
+    order_by: "score desc",
+  });
+  const headers: Record<string, string> = {
+    "User-Agent": "Brandon Network research@bblatam.com",
+  };
+  if (process.env.COURTLISTENER_API_TOKEN) {
+    headers.Authorization = `Token ${process.env.COURTLISTENER_API_TOKEN}`;
+  }
+  const res = await fetch(
+    `https://www.courtlistener.com/api/rest/v4/search/?${params}`,
+    { headers },
+  );
+  if (!res.ok) return `Error CourtListener: ${res.status}`;
+  const json = await res.json();
+  const results = (json?.results ?? []).slice(0, 5).map((r: any) => ({
+    caso: r.caseName,
+    tribunal: r.court,
+    fecha: r.dateFiled,
+    url: r.absolute_url ? `https://www.courtlistener.com${r.absolute_url}` : null,
+  }));
+  return JSON.stringify({ total: json?.count ?? 0, resultados: results });
+}
+
 async function runTool(name: string, input: unknown): Promise<string> {
   try {
     if (name === "sec_edgar_search") return await secEdgarSearch(input as never);
     if (name === "treasury_rates_of_exchange")
       return await treasuryRates(input as never);
+    if (name === "courtlistener_search")
+      return await courtListenerSearch(input as never);
     return `Herramienta desconocida: ${name}`;
   } catch (e) {
     return `Error al ejecutar ${name}: ${String(e)}`;
