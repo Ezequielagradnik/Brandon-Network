@@ -130,19 +130,28 @@ export default function Hero() {
         className="-z-10 object-cover"
       />
 
-      {/* Selector de idioma + acceso */}
-      <header className="absolute right-0 top-0 z-10 flex items-center gap-3 p-4">
-        <div className="relative">
+      {/* Top bar responsive: logo a la izquierda, controles a la derecha */}
+      <header className="relative z-10 flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
+        <Image
+          src="/brand/brandon-network-navy.png"
+          alt="Brandon Network"
+          width={1548}
+          height={562}
+          priority
+          className="h-9 w-auto shrink-0 sm:h-12"
+        />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="relative">
           <button
             type="button"
             aria-haspopup="listbox"
             aria-expanded={langOpen}
             onClick={() => setLangOpen((open) => !open)}
-            className="flex h-12 items-center gap-2 rounded-xl border border-white/70 bg-white/70 px-4 text-[14px] font-medium shadow-[0_8px_24px_-14px_rgba(20,34,74,0.5)] backdrop-blur-md transition-all hover:bg-white"
+            className="flex h-11 items-center gap-2 rounded-xl border border-white/70 bg-white/70 px-3 text-[14px] font-medium shadow-[0_8px_24px_-14px_rgba(20,34,74,0.5)] backdrop-blur-md transition-all hover:bg-white sm:h-12 sm:px-4"
             style={{ color: NAVY }}
           >
             <span className="text-[18px] leading-none">{current.flag}</span>
-            {current.label}
+            <span className="hidden sm:inline">{current.label}</span>
             <span
               className="text-[11px] transition-transform"
               style={{ transform: langOpen ? "rotate(180deg)" : "none" }}
@@ -179,7 +188,7 @@ export default function Hero() {
         </div>
         <Link
           href="/login"
-          className="flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-center text-[14px] font-semibold tracking-wide shadow-[0_14px_34px_-12px_rgba(20,34,74,0.55)] ring-1 ring-[#14224a]/10 transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_42px_-12px_rgba(20,34,74,0.7)]"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-center text-[14px] font-semibold tracking-wide shadow-[0_14px_34px_-12px_rgba(20,34,74,0.55)] ring-1 ring-[#14224a]/10 transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_42px_-12px_rgba(20,34,74,0.7)] sm:h-12 sm:px-6"
           style={{ color: NAVY }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -188,19 +197,8 @@ export default function Hero() {
           </svg>
           {t.nav.access}
         </Link>
+        </div>
       </header>
-
-      {/* Logo */}
-      <div className="relative flex justify-center pt-6">
-        <Image
-          src="/brand/brandon-network-navy.png"
-          alt="Brandon Network"
-          width={1548}
-          height={562}
-          priority
-          className="h-14 w-auto sm:h-16"
-        />
-      </div>
 
       {/* Copy */}
       <div className="relative mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center px-6 pb-[24vh] text-center">
