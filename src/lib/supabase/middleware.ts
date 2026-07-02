@@ -31,20 +31,18 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isAuthRoute = pathname === "/login";
   const isProtected =
     pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
 
-  // Sin sesión y entrando a algo protegido -> login
-  // (la home "/" es la landing pública, no se redirige)
+  // Sin sesión y entrando a algo protegido -> landing (el login vive en el modal de la landing)
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
-  // Con sesión y parado en /login o / -> al dashboard
-  if (user && (isAuthRoute || pathname === "/")) {
+  // Con sesión y parado en la landing -> al dashboard (asistente)
+  if (user && pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
