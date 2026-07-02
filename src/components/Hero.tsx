@@ -227,25 +227,7 @@ export default function Hero() {
           {t.heroAI.sub}
         </p>
 
-        {/* Preguntas sugeridas */}
-        <div className="mt-8 flex flex-wrap justify-center gap-2">
-          {t.heroAI.suggestions.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => {
-                localStorage.setItem("bn-pending-prompt", s);
-                setGateOpen(true);
-              }}
-              className="rounded-full border border-white/60 bg-white/45 px-4 py-2 text-[13px] font-medium backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white"
-              style={{ color: NAVY }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        {/* Prompter glass */}
+        {/* Prompter glass con sugerencias adentro */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -260,31 +242,52 @@ export default function Hero() {
             aria-hidden
             className="pointer-events-none absolute -inset-[1.5px] rounded-[18px] bg-gradient-to-br from-white/90 via-white/30 to-white/70"
           />
-          <div className="relative flex items-center gap-4 rounded-2xl border border-white/60 bg-white/35 py-4 pl-5 pr-4 shadow-[0_20px_60px_-20px_rgba(20,34,74,0.35),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl transition-colors focus-within:bg-white/45">
-            <input
-              type="text"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder={prompt}
-              className="min-h-[72px] flex-1 bg-transparent text-[19px] focus:outline-none sm:min-h-[88px] sm:text-[20px]"
-              style={{ color: NAVY }}
-            />
-            <span className="relative shrink-0">
-              <span
-                aria-hidden
-                className="absolute -inset-1.5 animate-pulse rounded-2xl bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-500 opacity-70 blur-md"
+          <div className="relative flex flex-col gap-3 rounded-2xl border border-white/60 bg-white/35 p-3 shadow-[0_20px_60px_-20px_rgba(20,34,74,0.35),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl transition-colors focus-within:bg-white/45">
+            {/* Sugerencias */}
+            <div className="flex flex-wrap gap-2 px-1">
+              {t.heroAI.suggestions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem("bn-pending-prompt", s);
+                    setGateOpen(true);
+                  }}
+                  className="rounded-full border border-white/70 bg-white/60 px-3 py-1.5 text-[12px] font-medium transition-colors hover:bg-white"
+                  style={{ color: NAVY }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            {/* Input + enviar */}
+            <div className="flex items-center gap-3 pl-2">
+              <input
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder={prompt}
+                className="min-h-[56px] flex-1 bg-transparent text-[18px] focus:outline-none sm:min-h-[64px] sm:text-[20px]"
+                style={{ color: NAVY }}
               />
-              <button
-                type="submit"
-                aria-label="Enviar"
-                className="relative flex h-14 w-14 items-center justify-center rounded-xl text-white shadow-[0_8px_24px_-8px_rgba(20,34,74,0.7)] transition-transform hover:scale-[1.06] active:scale-[0.97]"
-                style={{ background: `linear-gradient(180deg, #2a3f7a 0%, ${NAVY} 100%)` }}
-              >
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </span>
+              <span className="relative shrink-0">
+                <span
+                  aria-hidden
+                  className="absolute -inset-1.5 animate-pulse rounded-2xl bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-500 opacity-70 blur-md"
+                />
+                <button
+                  type="submit"
+                  aria-label="Enviar"
+                  className="relative flex h-13 w-13 items-center justify-center rounded-xl p-3.5 text-white shadow-[0_8px_24px_-8px_rgba(20,34,74,0.7)] transition-transform hover:scale-[1.06] active:scale-[0.97]"
+                  style={{ background: `linear-gradient(180deg, #2a3f7a 0%, ${NAVY} 100%)` }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </span>
+            </div>
           </div>
         </form>
       </div>
