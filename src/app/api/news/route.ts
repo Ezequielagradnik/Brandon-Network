@@ -10,6 +10,8 @@ const INDICES = [
   { s: "^IXIC", label: "Nasdaq" },
   { s: "^DJI", label: "Dow Jones" },
   { s: "GC=F", label: "Oro" },
+  { s: "BTC-USD", label: "Bitcoin" },
+  { s: "ARS=X", label: "Dólar" },
 ];
 
 const STOCKS = [
@@ -43,14 +45,14 @@ async function quote(sym: string): Promise<Quote | null> {
   }
 }
 
+// Secuencial: evita que Yahoo bloquee una ráfaga de requests en paralelo.
 async function quotesFor(list: { s: string; label: string }[]) {
-  const out = await Promise.all(
-    list.map(async (it) => {
-      const q = await quote(it.s);
-      return q ? { ...q, label: it.label } : null;
-    }),
-  );
-  return out.filter(Boolean);
+  const out: Quote[] = [];
+  for (const it of list) {
+    const q = await quote(it.s);
+    if (q) out.push({ ...q, label: it.label });
+  }
+  return out;
 }
 
 export async function GET() {
@@ -60,14 +62,12 @@ export async function GET() {
   } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
 
-  const [indices, stocks, newsRes] = await Promise.all([
-    quotesFor(INDICES),
-    quotesFor(STOCKS),
-    fetch(
-      "https://query1.finance.yahoo.com/v1/finance/search?q=stock%20market&newsCount=12&quotesCount=0",
-      { headers: { "User-Agent": UA }, cache: "no-store" },
-    ),
-  ]);
+  const newsRes = await fetch(
+    "https://query1.finance.yahoo.com/v1/finance/search?q=stock%20market&newsCount=12&quotesCount=0",
+    { headers: { "User-Agent": UA }, cache: "no-store" },
+  );
+  const indices = await quotesFor(INDICES);
+  const stocks = await quotesFor(STOCKS);
 
   let news: {
     title: string;

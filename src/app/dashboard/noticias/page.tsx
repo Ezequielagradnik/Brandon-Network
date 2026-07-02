@@ -70,8 +70,8 @@ export default function NoticiasPage() {
       )}
 
       {/* Índices */}
-      <div className="animate-fade-up mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-navy/10 bg-navy/10 sm:grid-cols-4">
-        {(data?.indices ?? Array.from({ length: 4 })).map((idx, i) => (
+      <div className="animate-fade-up mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-navy/10 bg-navy/10 sm:grid-cols-3 lg:grid-cols-6">
+        {(data?.indices ?? Array.from({ length: 6 })).map((idx, i) => (
           <div key={i} className="bg-white px-5 py-4">
             {idx ? (
               <>
