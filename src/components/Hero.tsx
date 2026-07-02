@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLang } from "@/components/LangProvider";
+import { createClient } from "@/lib/supabase/client";
 import { type Lang } from "@/lib/i18n";
 
 const NAVY = "#14224a";
@@ -20,6 +21,23 @@ export default function Hero() {
   const [wordVisible, setWordVisible] = useState(true);
   const [langOpen, setLangOpen] = useState(false);
   const [promptIndex, setPromptIndex] = useState(0);
+  const [gateOpen, setGateOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function signInGoogle() {
+    setBusy(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/noticias`,
+      },
+    });
+    if (error) {
+      setBusy(false);
+      console.error(error);
+    }
+  }
 
   const words = t.heroAI.words;
   const prompts = t.heroAI.prompts;
@@ -42,6 +60,16 @@ export default function Hero() {
     }, 3000);
     return () => clearInterval(interval);
   }, [prompts.length]);
+
+  // Cierra el modal con Esc
+  useEffect(() => {
+    if (!gateOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setGateOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [gateOpen]);
 
   // Evita índices fuera de rango al cambiar idioma
   const word = words[wordIndex % words.length];
@@ -110,8 +138,8 @@ export default function Hero() {
             aria-haspopup="listbox"
             aria-expanded={langOpen}
             onClick={() => setLangOpen((open) => !open)}
-            className="flex h-12 items-center gap-2 rounded-lg border bg-white/20 px-4 text-[14px] font-medium backdrop-blur-sm transition-colors hover:bg-white/40"
-            style={{ color: NAVY, borderColor: NAVY }}
+            className="flex h-12 items-center gap-2 rounded-xl border border-white/70 bg-white/70 px-4 text-[14px] font-medium shadow-[0_8px_24px_-14px_rgba(20,34,74,0.5)] backdrop-blur-md transition-all hover:bg-white"
+            style={{ color: NAVY }}
           >
             <span className="text-[18px] leading-none">{current.flag}</span>
             {current.label}
@@ -151,9 +179,13 @@ export default function Hero() {
         </div>
         <Link
           href="/login"
-          className="flex h-12 items-center justify-center rounded-lg px-6 text-center text-[14px] font-semibold tracking-wide text-white shadow-[0_10px_30px_-10px_rgba(20,34,74,0.7),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-white/20 transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-10px_rgba(20,34,74,0.8)]"
-          style={{ background: `linear-gradient(180deg, #2a3f7a 0%, ${NAVY} 100%)` }}
+          className="flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-center text-[14px] font-semibold tracking-wide shadow-[0_14px_34px_-12px_rgba(20,34,74,0.55)] ring-1 ring-[#14224a]/10 transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_42px_-12px_rgba(20,34,74,0.7)]"
+          style={{ color: NAVY }}
         >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M5 21a7 7 0 0 1 14 0" />
+          </svg>
           {t.nav.access}
         </Link>
       </header>
@@ -195,7 +227,13 @@ export default function Hero() {
         </p>
 
         {/* Prompter glass */}
-        <form className="group relative mt-10 w-full max-w-3xl">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setGateOpen(true);
+          }}
+          className="group relative mt-10 w-full max-w-3xl"
+        >
           <div
             aria-hidden
             className="pointer-events-none absolute -inset-[1.5px] rounded-[18px] bg-gradient-to-br from-white/90 via-white/30 to-white/70"
@@ -226,6 +264,97 @@ export default function Hero() {
           </div>
         </form>
       </div>
+
+      {/* Modal: iniciar sesión para usar el asistente */}
+      {gateOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            aria-label="Cerrar"
+            onClick={() => setGateOpen(false)}
+            className="absolute inset-0 bg-[#0b1b2e]/40 backdrop-blur-sm"
+          />
+          <div className="animate-fade-up relative w-full max-w-md rounded-2xl border border-white/60 bg-white p-8 text-center shadow-[0_30px_80px_-20px_rgba(20,34,74,0.5)]">
+            <button
+              aria-label="Cerrar"
+              onClick={() => setGateOpen(false)}
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-[#14224a]/50 transition-colors hover:bg-[#14224a]/5 hover:text-[#14224a]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+
+            <span
+              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full"
+              style={{ background: "rgba(20,34,74,0.08)", color: NAVY }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="11" width="16" height="9" rx="2" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+            </span>
+
+            <h2
+              className="mt-5 text-[24px] leading-tight"
+              style={{ fontFamily: "var(--font-fraunces)", color: NAVY }}
+            >
+              {t.heroAI.gate.title}
+            </h2>
+            <p className="mt-3 text-[15px] leading-relaxed" style={{ color: `${NAVY}b3` }}>
+              {t.heroAI.gate.body}
+            </p>
+
+            <div className="mt-7 flex flex-col gap-2.5">
+              {/* Login con Google (real) */}
+              <button
+                onClick={signInGoogle}
+                disabled={busy}
+                className="flex h-12 items-center justify-center gap-2.5 rounded-xl text-[14px] font-semibold text-white shadow-[0_14px_34px_-12px_rgba(20,34,74,0.6)] transition-all hover:-translate-y-0.5 disabled:opacity-60"
+                style={{ background: `linear-gradient(180deg, #2a3f7a 0%, ${NAVY} 100%)` }}
+              >
+                <GoogleIcon />
+                {busy ? t.login.connecting : t.login.google}
+              </button>
+
+              {/* Registrarse (también vía Google) */}
+              <div className="flex items-center justify-center gap-1.5 text-[13px]">
+                <span style={{ color: `${NAVY}99` }}>{t.heroAI.gate.noAccount}</span>
+                <button
+                  onClick={signInGoogle}
+                  disabled={busy}
+                  className="font-semibold underline underline-offset-2 transition-opacity hover:opacity-70 disabled:opacity-60"
+                  style={{ color: NAVY }}
+                >
+                  {t.heroAI.gate.register}
+                </button>
+              </div>
+
+              <button
+                onClick={() => setGateOpen(false)}
+                className="mt-1 h-10 text-[13px] font-medium transition-colors"
+                style={{ color: `${NAVY}99` }}
+              >
+                {t.heroAI.gate.cancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true" className="rounded-full bg-white p-[1px]">
+      <path fill="#FFC107" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z" />
+      <path fill="#FF3D00" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z" />
+      <path fill="#4CAF50" d="M3.97 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.05l3.01-2.33z" />
+      <path fill="#1976D2" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
+    </svg>
   );
 }
