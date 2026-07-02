@@ -1,0 +1,165 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useLang } from "@/components/LangProvider";
+
+type Msg = { role: "user" | "assistant"; content: string };
+
+export default function AsistentePage() {
+  const { t } = useLang();
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const startedFromPending = useRef(false);
+
+  // Autoscroll
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages]);
+
+  async function send(text: string) {
+    const clean = text.trim();
+    if (!clean || loading) return;
+    setInput("");
+
+    const next: Msg[] = [...messages, { role: "user", content: clean }];
+    setMessages([...next, { role: "assistant", content: "" }]);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next }),
+      });
+
+      if (!res.ok || !res.body) {
+        throw new Error(await res.text());
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setMessages((prev) => {
+          const copy = [...prev];
+          copy[copy.length - 1] = { role: "assistant", content: acc };
+          return copy;
+        });
+      }
+    } catch {
+      setMessages((prev) => {
+        const copy = [...prev];
+        copy[copy.length - 1] = {
+          role: "assistant",
+          content: "⚠️ No se pudo obtener respuesta. Revisá que ANTHROPIC_API_KEY esté configurada e intentá de nuevo.",
+        };
+        return copy;
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Handoff: prompt escrito antes de loguearse
+  useEffect(() => {
+    if (startedFromPending.current) return;
+    startedFromPending.current = true;
+    const pending = localStorage.getItem("bn-pending-prompt");
+    if (pending) {
+      localStorage.removeItem("bn-pending-prompt");
+      send(pending);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const empty = messages.length === 0;
+
+  return (
+    <div className="mx-auto flex h-full max-w-3xl flex-col px-6">
+      {/* Header */}
+      <header className="animate-fade-up pt-10">
+        <h1 className="font-display text-4xl leading-tight text-navy sm:text-5xl">
+          {t.asistente.title}{" "}
+          <span className="italic text-gold">{t.asistente.accent}</span>
+        </h1>
+        <p className="mt-2 text-sm text-navy/55">{t.asistente.subtitle}</p>
+      </header>
+
+      {/* Mensajes */}
+      <div ref={scrollRef} className="mt-6 flex-1 space-y-5 overflow-y-auto pb-4">
+        {empty && (
+          <div className="flex h-full items-center justify-center">
+            <p className="font-display text-2xl text-navy/35">
+              {t.asistente.greeting}
+            </p>
+          </div>
+        )}
+
+        {messages.map((m, i) =>
+          m.role === "user" ? (
+            <div key={i} className="flex justify-end">
+              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-navy px-4 py-2.5 text-sm leading-relaxed text-ivory">
+                {m.content}
+              </div>
+            </div>
+          ) : (
+            <div key={i} className="flex justify-start">
+              <div className="max-w-[90%] whitespace-pre-wrap rounded-2xl rounded-bl-md border border-navy/10 bg-white px-4 py-3 text-sm leading-relaxed text-navy">
+                {m.content || (
+                  <span className="inline-flex gap-1">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/30 [animation-delay:-0.2s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/30 [animation-delay:-0.1s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/30" />
+                  </span>
+                )}
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+
+      {/* Input */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          send(input);
+        }}
+        className="pb-4 pt-2"
+      >
+        <div className="flex items-end gap-2 rounded-2xl border border-navy/15 bg-white p-2 shadow-[0_8px_30px_-16px_rgba(11,27,46,0.25)] transition-colors focus-within:border-gold/50">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send(input);
+              }
+            }}
+            rows={1}
+            placeholder={t.asistente.placeholder}
+            className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-navy placeholder:text-navy/40 focus:outline-none"
+          />
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+            aria-label={t.asistente.send}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy text-ivory transition-all hover:bg-navy-2 disabled:opacity-40"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 11l5-5 5 5M12 6v13" />
+            </svg>
+          </button>
+        </div>
+        <p className="mt-2 text-center text-[11px] text-navy/35">
+          {t.asistente.disclaimer}
+        </p>
+      </form>
+    </div>
+  );
+}

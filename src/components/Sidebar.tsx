@@ -10,11 +10,12 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type NavItem = {
   href: string;
-  key: "noticias" | "irs" | "videos";
+  key: "asistente" | "noticias" | "irs" | "videos";
   icon: React.ReactNode;
 };
 
 const NAV: NavItem[] = [
+  { href: "/dashboard", key: "asistente", icon: <IconChat /> },
   { href: "/dashboard/noticias", key: "noticias", icon: <IconNews /> },
   { href: "/dashboard/irs", key: "irs", icon: <IconIrs /> },
   { href: "/dashboard/videos", key: "videos", icon: <IconVideo /> },
@@ -90,7 +91,10 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
       {/* Nav */}
       <nav className="mt-12 flex flex-1 flex-col gap-1">
         {NAV.map((item) => {
-          const active = pathname.startsWith(item.href);
+          const active =
+            item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname.startsWith(item.href);
           const label = t.sidebar[item.key];
           return (
             <Link
@@ -194,6 +198,14 @@ function IconChevron({ open }: { open: boolean }) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${open ? "" : "rotate-180"}`}>
       <path d="M15 6l-6 6 6 6" />
+    </svg>
+  );
+}
+function IconChat() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z" />
+      <path d="M8.5 11h7M8.5 14h4" />
     </svg>
   );
 }

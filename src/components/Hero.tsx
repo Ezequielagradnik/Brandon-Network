@@ -22,6 +22,7 @@ export default function Hero() {
   const [promptIndex, setPromptIndex] = useState(0);
   const [gateOpen, setGateOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [draft, setDraft] = useState("");
 
   async function signInGoogle() {
     setBusy(true);
@@ -29,7 +30,7 @@ export default function Hero() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/noticias`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     });
     if (error) {
@@ -230,6 +231,9 @@ export default function Hero() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            if (draft.trim()) {
+              localStorage.setItem("bn-pending-prompt", draft.trim());
+            }
             setGateOpen(true);
           }}
           className="group relative mt-10 w-full max-w-3xl"
@@ -241,6 +245,8 @@ export default function Hero() {
           <div className="relative flex items-center gap-4 rounded-2xl border border-white/60 bg-white/35 py-4 pl-5 pr-4 shadow-[0_20px_60px_-20px_rgba(20,34,74,0.35),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl transition-colors focus-within:bg-white/45">
             <input
               type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
               placeholder={prompt}
               className="min-h-[72px] flex-1 bg-transparent text-[19px] focus:outline-none sm:min-h-[88px] sm:text-[20px]"
               style={{ color: NAVY }}

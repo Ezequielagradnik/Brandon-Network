@@ -46,7 +46,7 @@ export async function updateSession(request: NextRequest) {
   // Con sesión y parado en /login o / -> al dashboard
   if (user && (isAuthRoute || pathname === "/")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard/noticias";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
@@ -60,7 +60,7 @@ export async function updateSession(request: NextRequest) {
 
     if (profile?.role !== "admin") {
       const url = request.nextUrl.clone();
-      url.pathname = "/dashboard/noticias";
+      url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
   }
