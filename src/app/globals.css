@@ -92,6 +92,22 @@ body {
 }
 .animate-spin-slow { animation: spin-slow 28s linear infinite; }
 
+/* Océano: ondas concéntricas que respiran */
+@keyframes ocean-ripple {
+  0% { transform: scale(1); opacity: 0.45; }
+  50% { opacity: 0.28; }
+  100% { transform: scale(1.09); opacity: 0.45; }
+}
+.ocean-ripple {
+  transform-origin: 50% 40%;
+  animation: ocean-ripple 9s ease-in-out infinite;
+}
+@keyframes ocean-sheen {
+  0%, 100% { opacity: 0.35; transform: translateX(-2%); }
+  50% { opacity: 0.6; transform: translateX(2%); }
+}
+.ocean-sheen { animation: ocean-sheen 11s ease-in-out infinite; }
+
 /* Ticker marquee */
 @keyframes marquee {
   from { transform: translateX(0); }
@@ -154,7 +170,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-1, .aurora-2, .animate-marquee, .shimmer-gold, .animate-spin-slow { animation: none; }
+  .aurora-1, .aurora-2, .animate-marquee, .shimmer-gold, .animate-spin-slow, .ocean-ripple, .ocean-sheen { animation: none; }
   .shimmer-gold { color: var(--gold-soft); -webkit-text-fill-color: var(--gold-soft); }
   .reveal { opacity: 1; transform: none; transition: none; }
 }

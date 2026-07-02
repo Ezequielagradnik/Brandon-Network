@@ -59,6 +59,20 @@ export const dict = {
       address: "Brandon Brokerage Latam · Coral Gables, Miami, Estados Unidos",
       rights: "Brandon Network. Todos los derechos reservados.",
     },
+    heroAI: {
+      line1: "Tu asistente de IA",
+      forWord: "para",
+      words: ["finanzas", "legales", "datos tributarios"],
+      sub: "Brandon Network es un producto de Brandon Latam, curado exclusivamente para nuestros clientes.",
+      prompts: [
+        "Calculá los taxes a pagar en EE.UU. de Criptolab, Inc.",
+        "Redactá un contrato de servicios para un cliente en México",
+        "¿Qué retenciones aplican a dividendos desde Delaware?",
+        "Prepará el cierre contable mensual de Acme LLC",
+        "¿Cómo declaro ingresos de un SAFE en Argentina?",
+        "Revisá el NDA que me envió un proveedor en Miami",
+      ],
+    },
     login: { phrasePre: "Preservando tu", phraseAccent: "legado", note: "Acceso exclusivo para clientes y administradores de Brandon Network.", google: "Continuar con Google", connecting: "Conectando…" },
     sidebar: { noticias: "Noticias", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Cerrar sesión", expand: "Expandir", collapse: "Colapsar" },
     noticias: {
@@ -152,6 +166,20 @@ export const dict = {
       address: "Brandon Brokerage Latam · Coral Gables, Miami, United States",
       rights: "Brandon Network. All rights reserved.",
     },
+    heroAI: {
+      line1: "Your AI assistant",
+      forWord: "for",
+      words: ["finance", "legal", "tax data"],
+      sub: "Brandon Network is a Brandon Latam product, curated exclusively for our clients.",
+      prompts: [
+        "Calculate the U.S. taxes owed by Criptolab, Inc.",
+        "Draft a services agreement for a client in Mexico",
+        "What withholding applies to dividends from Delaware?",
+        "Prepare the monthly closing for Acme LLC",
+        "How do I report income from a SAFE in Argentina?",
+        "Review the NDA a vendor in Miami sent me",
+      ],
+    },
     login: { phrasePre: "Preserving your", phraseAccent: "legacy", note: "Exclusive access for Brandon Network clients and administrators.", google: "Continue with Google", connecting: "Connecting…" },
     sidebar: { noticias: "News", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Sign out", expand: "Expand", collapse: "Collapse" },
     noticias: {
@@ -244,6 +272,20 @@ export const dict = {
     footer: {
       address: "Brandon Brokerage Latam · Coral Gables, Miami, Estados Unidos",
       rights: "Brandon Network. Todos os direitos reservados.",
+    },
+    heroAI: {
+      line1: "Seu assistente de IA",
+      forWord: "para",
+      words: ["finanças", "jurídico", "dados tributários"],
+      sub: "A Brandon Network é um produto da Brandon Latam, curado exclusivamente para os nossos clientes.",
+      prompts: [
+        "Calcule os impostos a pagar nos EUA da Criptolab, Inc.",
+        "Redija um contrato de serviços para um cliente no México",
+        "Que retenções se aplicam a dividendos de Delaware?",
+        "Prepare o fechamento contábil mensal da Acme LLC",
+        "Como declaro rendimentos de um SAFE na Argentina?",
+        "Revise o NDA que um fornecedor em Miami me enviou",
+      ],
     },
     login: { phrasePre: "Preservando o seu", phraseAccent: "legado", note: "Acesso exclusivo para clientes e administradores da Brandon Network.", google: "Continuar com Google", connecting: "Conectando…" },
     sidebar: { noticias: "Notícias", irs: "IRS", videos: "Vídeos", admin: "Admin", logout: "Sair", expand: "Expandir", collapse: "Recolher" },
