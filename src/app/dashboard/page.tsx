@@ -93,21 +93,20 @@ export default function AsistentePage() {
       {/* Mensajes */}
       <div ref={scrollRef} className="mt-6 flex-1 space-y-5 overflow-y-auto pb-4">
         {empty && (
-          <div className="flex h-full flex-col items-center justify-center gap-7">
-            <p className="font-display text-2xl text-navy/35">
-              {t.asistente.greeting}
-            </p>
-            <div className="flex max-w-xl flex-wrap justify-center gap-2">
-              {t.heroAI.suggestions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => send(s)}
-                  className="rounded-full border border-navy/15 bg-white px-4 py-2 text-sm text-navy/70 transition-all hover:-translate-y-0.5 hover:border-gold/50 hover:text-navy"
-                >
-                  {s}
-                </button>
-              ))}
+          <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-2xl border border-navy/10 bg-white text-gold shadow-[0_12px_32px_-18px_rgba(11,27,46,0.35)]">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z" />
+                <path d="M8.5 11h7M8.5 14h4" />
+              </svg>
+            </span>
+            <div>
+              <p className="font-display text-3xl text-navy sm:text-4xl">
+                {t.asistente.greeting}
+              </p>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-navy/50">
+                {t.asistente.subtitle}
+              </p>
             </div>
           </div>
         )}
@@ -143,6 +142,20 @@ export default function AsistentePage() {
         }}
         className="pb-4 pt-2"
       >
+        {empty && (
+          <div className="no-scrollbar mb-2 flex gap-2 overflow-x-auto pb-1">
+            {t.heroAI.suggestions.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => send(s)}
+                className="shrink-0 whitespace-nowrap rounded-full border border-navy/15 bg-white px-3.5 py-1.5 text-xs text-navy/70 transition-colors hover:border-gold/40 hover:text-navy"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex items-end gap-2 rounded-2xl border border-navy/15 bg-white p-2 shadow-[0_8px_30px_-16px_rgba(11,27,46,0.25)] transition-colors focus-within:border-gold/50">
           <textarea
             value={input}

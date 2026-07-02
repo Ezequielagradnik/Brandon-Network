@@ -56,6 +56,15 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Carrusel sin barra de scroll */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Microinteracción de carga */
 @keyframes fade-up {
   from {
