@@ -72,6 +72,12 @@ export const dict = {
         "¿Cómo declaro ingresos de un SAFE en Argentina?",
         "Revisá el NDA que me envió un proveedor en Miami",
       ],
+      suggestions: [
+        "¿Qué es el W-8BEN y cuándo lo necesito?",
+        "Redactá un NDA para un proveedor en EE.UU.",
+        "¿Cómo tributa una LLC de Delaware siendo no residente?",
+        "¿Cómo protejo mi patrimonio con un fideicomiso?",
+      ],
       gate: {
         title: "Iniciá sesión para continuar",
         body: "El asistente de Brandon Network es exclusivo para clientes. Ingresá con tu cuenta para usarlo.",
@@ -195,6 +201,12 @@ export const dict = {
         "How do I report income from a SAFE in Argentina?",
         "Review the NDA a vendor in Miami sent me",
       ],
+      suggestions: [
+        "What is the W-8BEN and when do I need it?",
+        "Draft an NDA for a U.S. vendor",
+        "How is a Delaware LLC taxed for a non-resident?",
+        "How do I protect my wealth with a trust?",
+      ],
       gate: {
         title: "Sign in to continue",
         body: "The Brandon Network assistant is exclusive to clients. Sign in with your account to use it.",
@@ -317,6 +329,12 @@ export const dict = {
         "Prepare o fechamento contábil mensal da Acme LLC",
         "Como declaro rendimentos de um SAFE na Argentina?",
         "Revise o NDA que um fornecedor em Miami me enviou",
+      ],
+      suggestions: [
+        "O que é o W-8BEN e quando preciso dele?",
+        "Redija um NDA para um fornecedor nos EUA",
+        "Como é tributada uma LLC de Delaware para um não residente?",
+        "Como protejo meu patrimônio com um trust?",
       ],
       gate: {
         title: "Entre para continuar",

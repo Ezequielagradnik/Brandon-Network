@@ -93,10 +93,22 @@ export default function AsistentePage() {
       {/* Mensajes */}
       <div ref={scrollRef} className="mt-6 flex-1 space-y-5 overflow-y-auto pb-4">
         {empty && (
-          <div className="flex h-full items-center justify-center">
+          <div className="flex h-full flex-col items-center justify-center gap-7">
             <p className="font-display text-2xl text-navy/35">
               {t.asistente.greeting}
             </p>
+            <div className="flex max-w-xl flex-wrap justify-center gap-2">
+              {t.heroAI.suggestions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => send(s)}
+                  className="rounded-full border border-navy/15 bg-white px-4 py-2 text-sm text-navy/70 transition-all hover:-translate-y-0.5 hover:border-gold/50 hover:text-navy"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

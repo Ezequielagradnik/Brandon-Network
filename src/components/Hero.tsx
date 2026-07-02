@@ -227,6 +227,24 @@ export default function Hero() {
           {t.heroAI.sub}
         </p>
 
+        {/* Preguntas sugeridas */}
+        <div className="mt-8 flex flex-wrap justify-center gap-2">
+          {t.heroAI.suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                localStorage.setItem("bn-pending-prompt", s);
+                setGateOpen(true);
+              }}
+              className="rounded-full border border-white/60 bg-white/45 px-4 py-2 text-[13px] font-medium backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white"
+              style={{ color: NAVY }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
         {/* Prompter glass */}
         <form
           onSubmit={(e) => {
