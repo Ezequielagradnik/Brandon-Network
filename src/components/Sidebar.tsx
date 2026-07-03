@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "@/app/auth/actions";
 import { useLang } from "@/components/LangProvider";
@@ -27,6 +27,7 @@ export type SidebarUser = {
 
 export default function Sidebar({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useLang();
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -57,6 +58,36 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
   type Convo = { id: string; title: string; updated_at: string };
   const [convos, setConvos] = useState<Convo[]>([]);
   const [hasMore, setHasMore] = useState(false);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editVal, setEditVal] = useState("");
+
+  async function renameConv(id: string) {
+    const title = editVal.trim();
+    setEditingId(null);
+    if (!title) return;
+    setConvos((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)));
+    await fetch(`/api/conversations/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    }).catch(() => {});
+  }
+
+  async function deleteConv(id: string) {
+    setMenuFor(null);
+    if (!window.confirm("¿Eliminar esta conversación?")) return;
+    setConvos((prev) => prev.filter((c) => c.id !== id));
+    await fetch(`/api/conversations/${id}`, { method: "DELETE" }).catch(() => {});
+    if (window.location.search.includes(`c=${id}`)) router.push("/dashboard");
+  }
+
+  useEffect(() => {
+    if (!menuFor) return;
+    const close = () => setMenuFor(null);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [menuFor]);
 
   async function fetchPage(offset: number, append: boolean) {
     try {
@@ -190,16 +221,72 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
             {t.sidebar.chats}
           </p>
           <div className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto">
-            {convos.map((c) => (
-              <Link
-                key={c.id}
-                href={`/dashboard?c=${c.id}`}
-                className="block rounded-lg px-3 py-1.5 transition-colors hover:bg-white/[0.04]"
-              >
-                <p className="truncate text-sm text-text-muted">{c.title}</p>
-                <p className="text-[10px] text-text-muted/40">{fmtDate(c.updated_at)}</p>
-              </Link>
-            ))}
+            {convos.map((c) =>
+              editingId === c.id ? (
+                <input
+                  key={c.id}
+                  autoFocus
+                  value={editVal}
+                  onChange={(e) => setEditVal(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") renameConv(c.id);
+                    if (e.key === "Escape") setEditingId(null);
+                  }}
+                  onBlur={() => renameConv(c.id)}
+                  className="w-full rounded-lg bg-white/[0.06] px-3 py-1.5 text-sm text-ivory focus:outline-none"
+                />
+              ) : (
+                <div
+                  key={c.id}
+                  className="group/row relative flex items-center rounded-lg pr-1 hover:bg-white/[0.04]"
+                >
+                  <Link href={`/dashboard?c=${c.id}`} className="min-w-0 flex-1 px-3 py-1.5">
+                    <p className="truncate text-sm text-text-muted">{c.title}</p>
+                    <p className="text-[10px] text-text-muted/40">
+                      {fmtDate(c.updated_at)}
+                    </p>
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setMenuFor(menuFor === c.id ? null : c.id);
+                    }}
+                    aria-label="Opciones"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity hover:bg-white/[0.06] hover:text-ivory group-hover/row:opacity-100"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="5" cy="12" r="1.6" />
+                      <circle cx="12" cy="12" r="1.6" />
+                      <circle cx="19" cy="12" r="1.6" />
+                    </svg>
+                  </button>
+                  {menuFor === c.id && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute right-1 top-9 z-20 w-36 overflow-hidden rounded-lg border border-line bg-navy-2 py-1 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.6)]"
+                    >
+                      <button
+                        onClick={() => {
+                          setEditingId(c.id);
+                          setEditVal(c.title);
+                          setMenuFor(null);
+                        }}
+                        className="w-full px-3 py-2 text-left text-xs text-text-muted transition-colors hover:bg-white/[0.05] hover:text-ivory"
+                      >
+                        {t.sidebar.rename}
+                      </button>
+                      <button
+                        onClick={() => deleteConv(c.id)}
+                        className="w-full px-3 py-2 text-left text-xs text-down transition-colors hover:bg-white/[0.05]"
+                      >
+                        {t.sidebar.delete}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ),
+            )}
             {hasMore && (
               <button
                 onClick={() => fetchPage(convos.length, true)}
