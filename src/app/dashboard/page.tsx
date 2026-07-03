@@ -1,22 +1,71 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLang } from "@/components/LangProvider";
 import SuggestionCarousel from "@/components/SuggestionCarousel";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 export default function AsistentePage() {
+  return (
+    <Suspense>
+      <Assistant />
+    </Suspense>
+  );
+}
+
+function Assistant() {
   const { t } = useLang();
+  const router = useRouter();
+  const params = useSearchParams();
+  const cid = params.get("c");
+
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const startedFromPending = useRef(false);
+  const convIdRef = useRef<string | null>(cid);
+  const skipLoad = useRef(false);
+  const startedPending = useRef(false);
+
+  useEffect(() => {
+    convIdRef.current = cid;
+  }, [cid]);
+
+  // Cargar conversación al cambiar ?c=
+  useEffect(() => {
+    if (skipLoad.current) {
+      skipLoad.current = false;
+      return;
+    }
+    if (!cid) {
+      setMessages([]);
+      return;
+    }
+    let cancel = false;
+    fetch(`/api/conversations/${cid}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        if (!cancel)
+          setMessages(
+            (d.messages || []).map((m: Msg) => ({ role: m.role, content: m.content })),
+          );
+      })
+      .catch(() => {
+        if (!cancel) setMessages([]);
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [cid]);
 
   // Autoscroll
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages]);
 
   async function send(text: string) {
@@ -28,16 +77,35 @@ export default function AsistentePage() {
     setMessages([...next, { role: "assistant", content: "" }]);
     setLoading(true);
 
+    // Asegurar conversación
+    let convId = convIdRef.current;
+    if (!convId) {
+      try {
+        const r = await fetch("/api/conversations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: clean.slice(0, 80) }),
+        });
+        if (r.ok) {
+          const d = await r.json();
+          convId = d.id;
+          convIdRef.current = convId;
+          skipLoad.current = true;
+          router.replace(`/dashboard?c=${convId}`);
+          window.dispatchEvent(new Event("bn-convos-changed"));
+        }
+      } catch {
+        /* seguimos sin persistir */
+      }
+    }
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: next }),
       });
-
-      if (!res.ok || !res.body) {
-        throw new Error(await res.text());
-      }
+      if (!res.ok || !res.body) throw new Error(await res.text());
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -52,12 +120,28 @@ export default function AsistentePage() {
           return copy;
         });
       }
+
+      if (convId && acc) {
+        fetch(`/api/conversations/${convId}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [
+              { role: "user", content: clean },
+              { role: "assistant", content: acc },
+            ],
+          }),
+        })
+          .then(() => window.dispatchEvent(new Event("bn-convos-changed")))
+          .catch(() => {});
+      }
     } catch {
       setMessages((prev) => {
         const copy = [...prev];
         copy[copy.length - 1] = {
           role: "assistant",
-          content: "⚠️ No se pudo obtener respuesta. Revisá que ANTHROPIC_API_KEY esté configurada e intentá de nuevo.",
+          content:
+            "⚠️ No se pudo obtener respuesta. Revisá que ANTHROPIC_API_KEY esté configurada e intentá de nuevo.",
         };
         return copy;
       });
@@ -66,10 +150,11 @@ export default function AsistentePage() {
     }
   }
 
-  // Handoff: prompt escrito antes de loguearse
+  // Handoff: prompt escrito antes de loguearse (solo en chat nuevo)
   useEffect(() => {
-    if (startedFromPending.current) return;
-    startedFromPending.current = true;
+    if (startedPending.current) return;
+    startedPending.current = true;
+    if (cid) return;
     const pending = localStorage.getItem("bn-pending-prompt");
     if (pending) {
       localStorage.removeItem("bn-pending-prompt");
@@ -82,7 +167,6 @@ export default function AsistentePage() {
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-6">
-      {/* Header */}
       <header className="animate-fade-up pt-10">
         <h1 className="font-display text-4xl leading-tight text-navy sm:text-5xl">
           {t.asistente.title}{" "}
@@ -91,7 +175,6 @@ export default function AsistentePage() {
         <p className="mt-2 text-sm text-navy/55">{t.asistente.subtitle}</p>
       </header>
 
-      {/* Mensajes */}
       <div ref={scrollRef} className="mt-6 flex-1 space-y-5 overflow-y-auto pb-4">
         {empty && (
           <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
@@ -135,7 +218,6 @@ export default function AsistentePage() {
         )}
       </div>
 
-      {/* Input */}
       <form
         onSubmit={(e) => {
           e.preventDefault();

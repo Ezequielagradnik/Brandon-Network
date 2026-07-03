@@ -10,12 +10,11 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type NavItem = {
   href: string;
-  key: "asistente" | "noticias";
+  key: "noticias";
   icon: React.ReactNode;
 };
 
 const NAV: NavItem[] = [
-  { href: "/dashboard", key: "asistente", icon: <IconChat /> },
   { href: "/dashboard/noticias", key: "noticias", icon: <IconNews /> },
 ];
 
@@ -54,6 +53,37 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
 
   const isAdminActive = pathname.startsWith("/admin");
 
+  // Historial de chats
+  type Convo = { id: string; title: string; updated_at: string };
+  const [convos, setConvos] = useState<Convo[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+
+  async function fetchPage(offset: number, append: boolean) {
+    try {
+      const r = await fetch(`/api/conversations?limit=10&offset=${offset}`, {
+        cache: "no-store",
+      });
+      if (!r.ok) return;
+      const d = await r.json();
+      setConvos((prev) => (append ? [...prev, ...d.conversations] : d.conversations));
+      setHasMore(d.hasMore);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  useEffect(() => {
+    fetchPage(0, false);
+    const on = () => fetchPage(0, false);
+    window.addEventListener("bn-convos-changed", on);
+    return () => window.removeEventListener("bn-convos-changed", on);
+  }, []);
+
+  const fmtDate = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  };
+
   return (
     <aside
       className={`relative flex h-screen shrink-0 flex-col border-r border-line bg-navy-2 py-7 transition-[width] duration-300 ease-out ${
@@ -87,12 +117,27 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
       </div>
 
       {/* Nav */}
-      <nav className="mt-12 flex flex-1 flex-col gap-1">
+      <nav className="mt-8 flex flex-col gap-1">
+        {/* Nuevo chat */}
+        <Link
+          href="/dashboard"
+          title={collapsed ? t.sidebar.newChat : undefined}
+          className={`group flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all ${
+            collapsed ? "justify-center px-0" : "px-3"
+          } ${
+            pathname === "/dashboard"
+              ? "bg-white/[0.06] text-ivory"
+              : "text-text-muted hover:bg-white/[0.03] hover:text-ivory"
+          }`}
+        >
+          <span className={pathname === "/dashboard" ? "text-gold" : ""}>
+            <IconChat />
+          </span>
+          {!collapsed && t.sidebar.newChat}
+        </Link>
+
         {NAV.map((item) => {
-          const active =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
+          const active = pathname.startsWith(item.href);
           const label = t.sidebar[item.key];
           return (
             <Link
@@ -122,7 +167,7 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
           <Link
             href="/admin"
             title={collapsed ? t.sidebar.admin : undefined}
-            className={`group mt-2 flex items-center gap-3 rounded-xl py-2.5 text-sm transition-all ${
+            className={`group flex items-center gap-3 rounded-xl py-2.5 text-sm transition-all ${
               collapsed ? "justify-center px-0" : "px-3"
             } ${
               isAdminActive
@@ -137,6 +182,37 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
           </Link>
         )}
       </nav>
+
+      {/* Historial de chats */}
+      {!collapsed ? (
+        <div className="mt-6 flex min-h-0 flex-1 flex-col">
+          <p className="px-3 pb-2 text-[11px] uppercase tracking-wide text-text-muted/60">
+            {t.sidebar.chats}
+          </p>
+          <div className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto">
+            {convos.map((c) => (
+              <Link
+                key={c.id}
+                href={`/dashboard?c=${c.id}`}
+                className="block rounded-lg px-3 py-1.5 transition-colors hover:bg-white/[0.04]"
+              >
+                <p className="truncate text-sm text-text-muted">{c.title}</p>
+                <p className="text-[10px] text-text-muted/40">{fmtDate(c.updated_at)}</p>
+              </Link>
+            ))}
+            {hasMore && (
+              <button
+                onClick={() => fetchPage(convos.length, true)}
+                className="w-full rounded-lg px-3 py-2 text-center text-xs text-text-muted/70 transition-colors hover:text-ivory"
+              >
+                {t.sidebar.loadMore}
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1" />
+      )}
 
       {/* Idioma + Perfil */}
       <div className="mt-6 border-t border-line pt-5">
