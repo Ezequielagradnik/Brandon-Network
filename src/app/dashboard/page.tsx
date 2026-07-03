@@ -167,13 +167,15 @@ function Assistant() {
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-6">
-      <header className="animate-fade-up pt-10">
-        <h1 className="font-display text-4xl leading-tight text-navy sm:text-5xl">
-          {t.asistente.title}{" "}
-          <span className="italic text-gold">{t.asistente.accent}</span>
-        </h1>
-        <p className="mt-2 text-sm text-navy/55">{t.asistente.subtitle}</p>
-      </header>
+      {!empty && (
+        <header className="animate-fade-up pt-10">
+          <h1 className="font-display text-4xl leading-tight text-navy sm:text-5xl">
+            {t.asistente.title}{" "}
+            <span className="italic text-gold">{t.asistente.accent}</span>
+          </h1>
+          <p className="mt-2 text-sm text-navy/55">{t.asistente.subtitle}</p>
+        </header>
+      )}
 
       <div ref={scrollRef} className="mt-6 flex-1 space-y-5 overflow-y-auto pb-4">
         {empty && (
