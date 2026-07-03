@@ -61,6 +61,7 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editVal, setEditVal] = useState("");
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   async function renameConv(id: string) {
     const title = editVal.trim();
@@ -74,9 +75,10 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
     }).catch(() => {});
   }
 
-  async function deleteConv(id: string) {
-    setMenuFor(null);
-    if (!window.confirm("¿Eliminar esta conversación?")) return;
+  async function doDelete() {
+    const id = confirmId;
+    setConfirmId(null);
+    if (!id) return;
     setConvos((prev) => prev.filter((c) => c.id !== id));
     await fetch(`/api/conversations/${id}`, { method: "DELETE" }).catch(() => {});
     if (window.location.search.includes(`c=${id}`)) router.push("/dashboard");
@@ -277,7 +279,10 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
                         {t.sidebar.rename}
                       </button>
                       <button
-                        onClick={() => deleteConv(c.id)}
+                        onClick={() => {
+                          setMenuFor(null);
+                          setConfirmId(c.id);
+                        }}
                         className="w-full px-3 py-2 text-left text-xs text-down transition-colors hover:bg-white/[0.05]"
                       >
                         {t.sidebar.delete}
@@ -350,6 +355,41 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
           </button>
         </form>
       </div>
+
+      {/* Modal confirmar eliminación */}
+      {confirmId && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <button
+            aria-label="Cerrar"
+            onClick={() => setConfirmId(null)}
+            className="absolute inset-0 bg-[#0b1b2e]/50 backdrop-blur-sm"
+          />
+          <div className="animate-fade-up relative w-full max-w-sm rounded-2xl border border-navy/10 bg-white p-6 text-center text-navy shadow-[0_30px_80px_-20px_rgba(11,27,46,0.5)]">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-down/10 text-down">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
+                <path d="M10 11v6M14 11v6" />
+              </svg>
+            </span>
+            <h3 className="mt-4 font-display text-xl">{t.sidebar.deleteConfirm}</h3>
+            <p className="mt-2 text-sm text-navy/55">{t.sidebar.deleteHint}</p>
+            <div className="mt-6 flex gap-2">
+              <button
+                onClick={() => setConfirmId(null)}
+                className="flex-1 rounded-xl border border-navy/15 py-2.5 text-sm font-medium text-navy/70 transition-colors hover:bg-navy/[0.04]"
+              >
+                {t.sidebar.cancel}
+              </button>
+              <button
+                onClick={doDelete}
+                className="flex-1 rounded-xl bg-down py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              >
+                {t.sidebar.delete}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
