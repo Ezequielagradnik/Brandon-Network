@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLang } from "@/components/LangProvider";
 import SuggestionCarousel from "@/components/SuggestionCarousel";
+import Markdown from "@/components/Markdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -99,6 +100,15 @@ function Assistant() {
       }
     }
 
+    // Guardar la pregunta enseguida (para no perderla al navegar)
+    if (convId) {
+      fetch(`/api/conversations/${convId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [{ role: "user", content: clean }] }),
+      }).catch(() => {});
+    }
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -126,10 +136,7 @@ function Assistant() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages: [
-              { role: "user", content: clean },
-              { role: "assistant", content: acc },
-            ],
+            messages: [{ role: "assistant", content: acc }],
           }),
         })
           .then(() => window.dispatchEvent(new Event("bn-convos-changed")))
@@ -205,16 +212,16 @@ function Assistant() {
               </div>
             </div>
           ) : (
-            <div key={i} className="flex justify-start">
-              <div className="max-w-[90%] whitespace-pre-wrap rounded-2xl rounded-bl-md border border-navy/10 bg-white px-4 py-3 text-sm leading-relaxed text-navy">
-                {m.content || (
-                  <span className="inline-flex gap-1">
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/30 [animation-delay:-0.2s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/30 [animation-delay:-0.1s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/30" />
-                  </span>
-                )}
-              </div>
+            <div key={i} className="w-full">
+              {m.content ? (
+                <Markdown>{m.content}</Markdown>
+              ) : (
+                <span className="inline-flex gap-1 py-2">
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/30 [animation-delay:-0.2s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/30 [animation-delay:-0.1s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/30" />
+                </span>
+              )}
             </div>
           ),
         )}

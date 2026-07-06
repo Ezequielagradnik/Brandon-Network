@@ -19,7 +19,12 @@ Herramientas de datos públicos disponibles:
 - "sec_edgar_search": buscar documentos (filings) de empresas en la SEC de EE.UU. vía EDGAR.
 - "treasury_rates_of_exchange": tasas de cambio oficiales del Tesoro de EE.UU. para convertir moneda extranjera a USD.
 - "courtlistener_search": buscar jurisprudencia y fallos judiciales de EE.UU. (federal y estatal) por tema o partes.
-Usá estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, citá la fuente (SEC EDGAR / U.S. Treasury / CourtListener) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.`;
+Usá estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, citá la fuente (SEC EDGAR / U.S. Treasury / CourtListener) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.
+
+Formato de la respuesta:
+- Usá Markdown: títulos (##), negritas, listas y tablas cuando ayuden a la claridad. Para comparaciones o desgloses, preferí una tabla Markdown.
+- Terminá SIEMPRE con un tip destacado, como cita (blockquote) en una sola línea, con este formato exacto:
+> **Tip Brandon Network:** <consejo breve y accionable; cuando corresponda, invitá a validar con el equipo de Brandon>.`;
 
 const tools: Anthropic.Tool[] = [
   {
