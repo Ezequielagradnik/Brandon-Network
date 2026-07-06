@@ -25,6 +25,7 @@ function Assistant() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [followups, setFollowups] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const convIdRef = useRef<string | null>(cid);
   const skipLoad = useRef(false);
@@ -41,6 +42,7 @@ function Assistant() {
       skipLoad.current = false;
       return;
     }
+    setFollowups([]);
     if (!cid) {
       setMessages([]);
       return;
@@ -78,6 +80,7 @@ function Assistant() {
     const next: Msg[] = [...messages, { role: "user", content: clean }];
     setMessages([...next, { role: "assistant", content: "" }]);
     setLoading(true);
+    setFollowups([]);
 
     // Asegurar conversación
     let convId = convIdRef.current;
@@ -141,6 +144,20 @@ function Assistant() {
           }),
         })
           .then(() => window.dispatchEvent(new Event("bn-convos-changed")))
+          .catch(() => {});
+      }
+
+      // Sugerencias de seguimiento
+      if (acc) {
+        fetch("/api/followups", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [...next, { role: "assistant", content: acc }],
+          }),
+        })
+          .then((r) => (r.ok ? r.json() : { questions: [] }))
+          .then((d) => setFollowups(Array.isArray(d.questions) ? d.questions : []))
           .catch(() => {});
       }
     } catch {
@@ -230,6 +247,21 @@ function Assistant() {
               )}
             </div>
           ),
+        )}
+
+        {!loading && followups.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {followups.map((q, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => send(q)}
+                className="rounded-full border border-navy/15 bg-white px-3.5 py-1.5 text-left text-[13px] text-navy/70 transition-colors hover:border-gold/50 hover:text-navy"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
         )}
       </div>
 

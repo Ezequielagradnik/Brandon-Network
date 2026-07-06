@@ -116,10 +116,96 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
     return () => window.removeEventListener("bn-convos-changed", on);
   }, []);
 
-  const fmtDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
-  };
+  function groupConvos() {
+    const now = new Date();
+    const startToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    ).getTime();
+    const startYest = startToday - 86400000;
+    const start30 = startToday - 30 * 86400000;
+    const groups = [
+      { key: "today", label: t.sidebar.today, items: [] as Convo[] },
+      { key: "yesterday", label: t.sidebar.yesterday, items: [] as Convo[] },
+      { key: "last30", label: t.sidebar.last30, items: [] as Convo[] },
+      { key: "older", label: t.sidebar.older, items: [] as Convo[] },
+    ];
+    for (const c of convos) {
+      const ts = new Date(c.updated_at).getTime();
+      if (ts >= startToday) groups[0].items.push(c);
+      else if (ts >= startYest) groups[1].items.push(c);
+      else if (ts >= start30) groups[2].items.push(c);
+      else groups[3].items.push(c);
+    }
+    return groups.filter((g) => g.items.length);
+  }
+
+  const renderConvo = (c: Convo) =>
+    editingId === c.id ? (
+      <input
+        key={c.id}
+        autoFocus
+        value={editVal}
+        onChange={(e) => setEditVal(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") renameConv(c.id);
+          if (e.key === "Escape") setEditingId(null);
+        }}
+        onBlur={() => renameConv(c.id)}
+        className="w-full rounded-lg bg-white/[0.06] px-3 py-1.5 text-sm text-ivory focus:outline-none"
+      />
+    ) : (
+      <div
+        key={c.id}
+        className="group/row relative flex items-center rounded-lg pr-1 hover:bg-white/[0.04]"
+      >
+        <Link href={`/dashboard?c=${c.id}`} className="min-w-0 flex-1 px-3 py-1.5">
+          <p className="truncate text-sm text-text-muted">{c.title}</p>
+        </Link>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setMenuFor(menuFor === c.id ? null : c.id);
+          }}
+          aria-label="Opciones"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity hover:bg-white/[0.06] hover:text-ivory group-hover/row:opacity-100"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="1.6" />
+            <circle cx="12" cy="12" r="1.6" />
+            <circle cx="19" cy="12" r="1.6" />
+          </svg>
+        </button>
+        {menuFor === c.id && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-1 top-9 z-20 w-36 overflow-hidden rounded-lg border border-line bg-navy-2 py-1 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.6)]"
+          >
+            <button
+              onClick={() => {
+                setEditingId(c.id);
+                setEditVal(c.title);
+                setMenuFor(null);
+              }}
+              className="w-full px-3 py-2 text-left text-xs text-text-muted transition-colors hover:bg-white/[0.05] hover:text-ivory"
+            >
+              {t.sidebar.rename}
+            </button>
+            <button
+              onClick={() => {
+                setMenuFor(null);
+                setConfirmId(c.id);
+              }}
+              className="w-full px-3 py-2 text-left text-xs text-down transition-colors hover:bg-white/[0.05]"
+            >
+              {t.sidebar.delete}
+            </button>
+          </div>
+        )}
+      </div>
+    );
 
   return (
     <aside
@@ -225,82 +311,18 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
         )}
       </nav>
 
-      {/* Historial de chats */}
+      {/* Historial de chats (agrupado por fecha) */}
       {!collapsed ? (
         <div className="mt-6 flex min-h-0 flex-1 flex-col">
-          <p className="px-3 pb-2 text-[11px] uppercase tracking-wide text-text-muted/60">
-            {t.sidebar.chats}
-          </p>
-          <div className="no-scrollbar flex-1 space-y-0.5 overflow-y-auto">
-            {convos.map((c) =>
-              editingId === c.id ? (
-                <input
-                  key={c.id}
-                  autoFocus
-                  value={editVal}
-                  onChange={(e) => setEditVal(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") renameConv(c.id);
-                    if (e.key === "Escape") setEditingId(null);
-                  }}
-                  onBlur={() => renameConv(c.id)}
-                  className="w-full rounded-lg bg-white/[0.06] px-3 py-1.5 text-sm text-ivory focus:outline-none"
-                />
-              ) : (
-                <div
-                  key={c.id}
-                  className="group/row relative flex items-center rounded-lg pr-1 hover:bg-white/[0.04]"
-                >
-                  <Link href={`/dashboard?c=${c.id}`} className="min-w-0 flex-1 px-3 py-1.5">
-                    <p className="truncate text-sm text-text-muted">{c.title}</p>
-                    <p className="text-[10px] text-text-muted/40">
-                      {fmtDate(c.updated_at)}
-                    </p>
-                  </Link>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setMenuFor(menuFor === c.id ? null : c.id);
-                    }}
-                    aria-label="Opciones"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity hover:bg-white/[0.06] hover:text-ivory group-hover/row:opacity-100"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="5" cy="12" r="1.6" />
-                      <circle cx="12" cy="12" r="1.6" />
-                      <circle cx="19" cy="12" r="1.6" />
-                    </svg>
-                  </button>
-                  {menuFor === c.id && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute right-1 top-9 z-20 w-36 overflow-hidden rounded-lg border border-line bg-navy-2 py-1 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.6)]"
-                    >
-                      <button
-                        onClick={() => {
-                          setEditingId(c.id);
-                          setEditVal(c.title);
-                          setMenuFor(null);
-                        }}
-                        className="w-full px-3 py-2 text-left text-xs text-text-muted transition-colors hover:bg-white/[0.05] hover:text-ivory"
-                      >
-                        {t.sidebar.rename}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setMenuFor(null);
-                          setConfirmId(c.id);
-                        }}
-                        className="w-full px-3 py-2 text-left text-xs text-down transition-colors hover:bg-white/[0.05]"
-                      >
-                        {t.sidebar.delete}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ),
-            )}
+          <div className="no-scrollbar flex-1 space-y-4 overflow-y-auto">
+            {groupConvos().map((g) => (
+              <div key={g.key}>
+                <p className="px-3 pb-1 text-[10px] font-medium uppercase tracking-wide text-text-muted/50">
+                  {g.label}
+                </p>
+                <div className="space-y-0.5">{g.items.map(renderConvo)}</div>
+              </div>
+            ))}
             {hasMore && (
               <button
                 onClick={() => fetchPage(convos.length, true)}
