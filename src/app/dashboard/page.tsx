@@ -32,6 +32,7 @@ function Assistant() {
 
   useEffect(() => {
     convIdRef.current = cid;
+    if (cid) localStorage.setItem("bn-active-conv", cid);
   }, [cid]);
 
   // Cargar conversación al cambiar ?c=
@@ -157,15 +158,20 @@ function Assistant() {
     }
   }
 
-  // Handoff: prompt escrito antes de loguearse (solo en chat nuevo)
+  // Al montar: handoff del prompt pre-login, o reanudar el chat activo
   useEffect(() => {
     if (startedPending.current) return;
     startedPending.current = true;
-    if (cid) return;
     const pending = localStorage.getItem("bn-pending-prompt");
     if (pending) {
       localStorage.removeItem("bn-pending-prompt");
+      localStorage.removeItem("bn-active-conv");
       send(pending);
+      return;
+    }
+    if (!cid) {
+      const active = localStorage.getItem("bn-active-conv");
+      if (active) router.replace(`/dashboard?c=${active}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

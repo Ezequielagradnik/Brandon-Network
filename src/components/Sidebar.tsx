@@ -81,6 +81,10 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
     if (!id) return;
     setConvos((prev) => prev.filter((c) => c.id !== id));
     await fetch(`/api/conversations/${id}`, { method: "DELETE" }).catch(() => {});
+    try {
+      if (localStorage.getItem("bn-active-conv") === id)
+        localStorage.removeItem("bn-active-conv");
+    } catch {}
     if (window.location.search.includes(`c=${id}`)) router.push("/dashboard");
   }
 
@@ -154,6 +158,11 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
         {/* Nuevo chat */}
         <Link
           href="/dashboard"
+          onClick={() => {
+            try {
+              localStorage.removeItem("bn-active-conv");
+            } catch {}
+          }}
           title={collapsed ? t.sidebar.newChat : undefined}
           className={`group flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all ${
             collapsed ? "justify-center px-0" : "px-3"
