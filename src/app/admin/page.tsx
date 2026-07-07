@@ -1,15 +1,101 @@
 import PageHeader from "@/components/PageHeader";
 import AdminStats from "@/components/AdminStats";
-import { ADMIN_METRICS, ADMIN_USERS } from "@/lib/mock";
-import { getT } from "@/lib/lang";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getT, getLang } from "@/lib/lang";
+
+export const dynamic = "force-dynamic";
+
+type Row = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  lastSignIn: number | null;
+  active: boolean;
+};
+
+async function loadAdminData() {
+  const admin = createAdminClient();
+
+  const [{ data: profiles }, authRes] = await Promise.all([
+    admin.from("profiles").select("id, full_name, email, role"),
+    admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+  ]);
+
+  const authMap = new Map<
+    string,
+    { email?: string; created_at?: string; last_sign_in_at?: string }
+  >();
+  for (const u of authRes.data?.users ?? []) {
+    authMap.set(u.id, {
+      email: u.email,
+      created_at: u.created_at,
+      last_sign_in_at: u.last_sign_in_at,
+    });
+  }
+
+  const now = Date.now();
+  const d30 = now - 30 * 86400000;
+  const startToday = new Date();
+  startToday.setHours(0, 0, 0, 0);
+  const startMonth = new Date();
+  startMonth.setDate(1);
+  startMonth.setHours(0, 0, 0, 0);
+
+  const rows: Row[] = [];
+  let loginsToday = 0;
+  let newThisMonth = 0;
+
+  for (const p of profiles ?? []) {
+    const a = authMap.get(p.id);
+    const email = p.email || a?.email || "";
+    const last = a?.last_sign_in_at ? Date.parse(a.last_sign_in_at) : null;
+    const created = a?.created_at ? Date.parse(a.created_at) : null;
+
+    if (last && last >= startToday.getTime()) loginsToday++;
+    if (created && created >= startMonth.getTime()) newThisMonth++;
+
+    rows.push({
+      id: p.id,
+      name: p.full_name || email.split("@")[0] || "Usuario",
+      email,
+      role: p.role || "cliente",
+      lastSignIn: last,
+      active: last != null && last >= d30,
+    });
+  }
+
+  rows.sort((a, b) => (b.lastSignIn ?? 0) - (a.lastSignIn ?? 0));
+
+  const total = rows.length;
+  const activeUsers = rows.filter((r) => r.active).length;
+
+  return {
+    rows,
+    values: [activeUsers, loginsToday, total, newThisMonth],
+  };
+}
 
 export default async function AdminPage() {
   const t = await getT();
+  const lang = await getLang();
+  const locale = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-AR";
 
-  const metrics = ADMIN_METRICS.map((m, i) => ({
-    label: t.admin.metrics[i] ?? m.label,
-    value: m.value,
+  const { rows, values } = await loadAdminData();
+
+  const metrics = values.map((v, i) => ({
+    label: t.admin.metrics[i] ?? "",
+    value: v.toLocaleString(locale),
   }));
+
+  const fmtLast = (ts: number | null) =>
+    ts
+      ? new Date(ts).toLocaleDateString(locale, {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : t.admin.never;
 
   return (
     <div className="mx-auto max-w-6xl px-8 py-10">
@@ -23,7 +109,9 @@ export default async function AdminPage() {
         <AdminStats metrics={metrics} />
       </div>
 
-      <h2 className="mt-12 mb-4 font-display text-2xl text-navy">{t.admin.usersTitle}</h2>
+      <h2 className="mt-12 mb-4 font-display text-2xl text-navy">
+        {t.admin.usersTitle}
+      </h2>
       <div className="animate-fade-up overflow-hidden rounded-[var(--radius-card)] border border-navy/10 bg-white">
         <table className="w-full text-sm">
           <thead>
@@ -31,11 +119,14 @@ export default async function AdminPage() {
               <th className="px-6 py-4 font-medium">{t.admin.cols.user}</th>
               <th className="px-6 py-4 font-medium">{t.admin.cols.email}</th>
               <th className="px-6 py-4 font-medium">{t.admin.cols.role}</th>
+              <th className="hidden px-6 py-4 font-medium md:table-cell">
+                {t.admin.cols.lastLogin}
+              </th>
               <th className="px-6 py-4 font-medium">{t.admin.cols.status}</th>
             </tr>
           </thead>
           <tbody>
-            {ADMIN_USERS.map((u) => (
+            {rows.map((u) => (
               <tr
                 key={u.id}
                 className="border-b border-navy/[0.06] transition-colors last:border-0 hover:bg-ivory/60"
@@ -53,17 +144,29 @@ export default async function AdminPage() {
                     {u.role}
                   </span>
                 </td>
+                <td className="tabular hidden px-6 py-4 text-navy/55 md:table-cell">
+                  {fmtLast(u.lastSignIn)}
+                </td>
                 <td className="px-6 py-4">
                   <span className="inline-flex items-center gap-1.5 text-xs text-navy/60">
                     <span
                       className="h-1.5 w-1.5 rounded-full"
-                      style={{ background: u.active ? "var(--up)" : "var(--text-muted)" }}
+                      style={{
+                        background: u.active ? "var(--up)" : "var(--text-muted)",
+                      }}
                     />
                     {u.active ? t.admin.active : t.admin.inactive}
                   </span>
                 </td>
               </tr>
             ))}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-navy/50">
+                  —
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
