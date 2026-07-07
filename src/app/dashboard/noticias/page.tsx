@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import { useLang } from "@/components/LangProvider";
 import CompanySearch from "@/components/CompanySearch";
+import ArticleReader, { type News } from "@/components/ArticleReader";
 
 type Quote = { label: string; price: number; changePct: number | null };
-type News = { title: string; publisher: string; link: string; time: number };
 type Data = { indices: Quote[]; stocks: Quote[]; news: News[] };
 
 function fmt(n: number) {
@@ -23,9 +23,6 @@ export default function NoticiasPage() {
 
   // Lector in-app
   const [article, setArticle] = useState<News | null>(null);
-  const [content, setContent] = useState("");
-  const [reading, setReading] = useState(false);
-  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     fetch("/api/news", { cache: "no-store" })
@@ -34,28 +31,8 @@ export default function NoticiasPage() {
       .catch(() => setError(true));
   }, []);
 
-  useEffect(() => {
-    if (!article) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setArticle(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [article]);
-
   function openReader(n: News) {
     setArticle(n);
-    setContent("");
-    setFailed(false);
-    setReading(true);
-    fetch(`/api/article?url=${encodeURIComponent(n.link)}`, { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.ok && d.content) setContent(d.content);
-        else setFailed(true);
-      })
-      .catch(() => setFailed(true))
-      .finally(() => setReading(false));
   }
 
   function ago(unixSec: number) {
@@ -200,78 +177,7 @@ export default function NoticiasPage() {
       </div>
 
       {/* Lector in-app */}
-      {article && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button
-            aria-label="Cerrar"
-            onClick={() => setArticle(null)}
-            className="absolute inset-0 bg-[#0b1b2e]/50 backdrop-blur-sm"
-          />
-          <div className="animate-fade-up relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-navy/10 bg-white shadow-[0_30px_80px_-20px_rgba(11,27,46,0.5)]">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-navy/10 px-6 py-5">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 text-xs text-navy/50">
-                  <span className="font-medium text-navy/70">{article.publisher}</span>
-                  <span>·</span>
-                  <span className="tabular">{ago(article.time)}</span>
-                </div>
-                <h2 className="mt-1.5 font-display text-2xl leading-snug text-navy">
-                  {article.title}
-                </h2>
-              </div>
-              <button
-                onClick={() => setArticle(null)}
-                aria-label="Cerrar"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-navy/50 transition-colors hover:bg-navy/5 hover:text-navy"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                  <path d="M6 6l12 12M18 6L6 18" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto px-6 py-5">
-              {reading ? (
-                <div className="space-y-2.5">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-3.5 rounded bg-navy/10"
-                      style={{ width: `${70 + ((i * 7) % 30)}%` }}
-                    />
-                  ))}
-                </div>
-              ) : failed ? (
-                <p className="text-sm leading-relaxed text-navy/60">
-                  No se pudo cargar el artículo acá (el medio lo bloquea o
-                  requiere suscripción). Podés abrirlo en la fuente.
-                </p>
-              ) : (
-                <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-navy/80">
-                  {content}
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="border-t border-navy/10 px-6 py-4 text-right">
-              <a
-                href={article.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-navy/15 px-4 py-2 text-sm font-medium text-navy/70 transition-colors hover:border-gold/40 hover:text-navy"
-              >
-                Abrir en la fuente
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M7 17L17 7M9 7h8v8" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
+      <ArticleReader article={article} onClose={() => setArticle(null)} ago={ago} />
     </div>
   );
 }
