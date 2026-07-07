@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import { useLang } from "@/components/LangProvider";
+import CompanySearch from "@/components/CompanySearch";
 
 type Quote = { label: string; price: number; changePct: number | null };
 type News = { title: string; publisher: string; link: string; time: number };
@@ -114,6 +115,9 @@ export default function NoticiasPage() {
           </div>
         ))}
       </div>
+
+      {/* Empresas que cotizan en bolsa */}
+      <CompanySearch onOpen={openReader} ago={ago} />
 
       {/* Acciones */}
       <h2 className="mt-10 mb-4 font-display text-2xl text-navy">Acciones</h2>
