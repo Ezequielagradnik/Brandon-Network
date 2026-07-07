@@ -6,6 +6,14 @@ import CompanyDetail from "@/components/CompanyDetail";
 import type { News } from "@/components/ArticleReader";
 
 type Match = { symbol: string; description: string; type: string };
+type Company = { symbol: string; name: string; mic: string | null };
+
+const MIC_LABEL: Record<string, string> = {
+  XNGS: "Nasdaq Global Select",
+  XNMS: "Nasdaq Global Market",
+  XNCM: "Nasdaq Capital Market",
+  XNAS: "Nasdaq",
+};
 
 export default function CompanySearch({
   onOpen,
@@ -24,6 +32,12 @@ export default function CompanySearch({
   );
   const [noKey, setNoKey] = useState(false);
 
+  // Directorio del Nasdaq (desde Supabase)
+  const [dir, setDir] = useState<Company[]>([]);
+  const [dirTotal, setDirTotal] = useState(0);
+  const [dirHasMore, setDirHasMore] = useState(false);
+  const [dirLoading, setDirLoading] = useState(true);
+
   const boxRef = useRef<HTMLDivElement>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -37,6 +51,7 @@ export default function CompanySearch({
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  // Autocompletado en vivo (Finnhub)
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current);
     const term = q.trim();
@@ -62,10 +77,31 @@ export default function CompanySearch({
     };
   }, [q]);
 
-  function pick(m: Match) {
+  // Directorio del Nasdaq (paginado)
+  function fetchDir(offset: number, append: boolean) {
+    setDirLoading(true);
+    fetch(`/api/companies?offset=${offset}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        setDir((prev) =>
+          append ? [...prev, ...(d.companies ?? [])] : (d.companies ?? []),
+        );
+        setDirTotal(d.total ?? 0);
+        setDirHasMore(Boolean(d.hasMore));
+      })
+      .catch(() => {
+        if (!append) setDir([]);
+      })
+      .finally(() => setDirLoading(false));
+  }
+
+  useEffect(() => {
+    fetchDir(0, false);
+  }, []);
+
+  function pick(symbol: string, name: string) {
     setShowList(false);
-    setQ(m.description);
-    setSelected({ symbol: m.symbol, name: m.description });
+    setSelected({ symbol, name });
   }
 
   return (
@@ -76,7 +112,7 @@ export default function CompanySearch({
       </h2>
       <p className="mb-4 text-sm text-navy/55">{t.noticias.companies.subtitle}</p>
 
-      {/* Buscador */}
+      {/* Buscador en vivo */}
       <div ref={boxRef} className="relative max-w-xl">
         <div className="flex items-center gap-2 rounded-[var(--radius-card)] border border-navy/15 bg-white px-4 py-3 shadow-[0_8px_30px_-18px_rgba(11,27,46,0.25)] transition-colors focus-within:border-gold/50">
           <svg
@@ -111,7 +147,10 @@ export default function CompanySearch({
                 <button
                   key={m.symbol}
                   type="button"
-                  onClick={() => pick(m)}
+                  onClick={() => {
+                    setQ(m.description);
+                    pick(m.symbol, m.description);
+                  }}
                   className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-navy/[0.04]"
                 >
                   <span className="min-w-0 truncate text-sm text-navy">
@@ -133,19 +172,100 @@ export default function CompanySearch({
         )}
       </div>
 
-      {/* Estado vacío / detalle */}
-      {!selected ? (
-        <p className="mt-6 rounded-[var(--radius-card)] border border-dashed border-navy/15 bg-white/60 px-5 py-6 text-center text-sm text-navy/45">
-          {t.noticias.companies.empty}
-        </p>
-      ) : (
+      {/* Detalle de la empresa elegida, o directorio del Nasdaq */}
+      {selected ? (
         <div className="mt-6">
+          <button
+            onClick={() => setSelected(null)}
+            className="mb-5 inline-flex items-center gap-1.5 text-sm text-navy/60 transition-colors hover:text-navy"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            {t.empresas.back}
+          </button>
           <CompanyDetail
             symbol={selected.symbol}
             fallbackName={selected.name}
             onOpen={onOpen}
             ago={ago}
           />
+        </div>
+      ) : (
+        <div className="mt-8">
+          <div className="mb-3 flex items-end justify-between">
+            <h3 className="font-display text-xl text-navy">
+              {t.empresas.title}{" "}
+              <span className="italic text-gold">{t.empresas.accent}</span>
+            </h3>
+            {dirTotal > 0 && (
+              <span className="text-xs text-navy/45">
+                {t.empresas.count.replace("{n}", dirTotal.toLocaleString("es-AR"))}
+              </span>
+            )}
+          </div>
+
+          <div className="overflow-hidden rounded-[var(--radius-card)] border border-navy/10 bg-white">
+            {dirLoading && dir.length === 0 ? (
+              <div className="divide-y divide-navy/[0.06]">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 px-5 py-3.5">
+                    <div className="h-4 w-16 rounded bg-navy/10" />
+                    <div className="h-4 w-48 rounded bg-navy/10" />
+                  </div>
+                ))}
+              </div>
+            ) : dir.length === 0 ? (
+              <p className="px-5 py-8 text-center text-sm text-navy/50">
+                {t.empresas.empty}
+              </p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-navy/[0.03] text-left text-xs uppercase tracking-wide text-navy/50">
+                  <tr>
+                    <th className="w-28 px-5 py-3 font-medium">
+                      {t.empresas.colSymbol}
+                    </th>
+                    <th className="px-5 py-3 font-medium">{t.empresas.colName}</th>
+                    <th className="hidden px-5 py-3 font-medium sm:table-cell">
+                      {t.empresas.colMarket}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-navy/[0.06]">
+                  {dir.map((c) => (
+                    <tr
+                      key={c.symbol}
+                      onClick={() => pick(c.symbol, c.name)}
+                      className="cursor-pointer transition-colors hover:bg-navy/[0.03]"
+                    >
+                      <td className="px-5 py-3">
+                        <span className="tabular rounded-md bg-navy/[0.06] px-2 py-0.5 text-xs font-medium text-navy/75">
+                          {c.symbol}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-navy">{c.name}</td>
+                      <td className="hidden px-5 py-3 text-navy/55 sm:table-cell">
+                        {c.mic ? MIC_LABEL[c.mic] ?? "Nasdaq" : "Nasdaq"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {dirHasMore && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => fetchDir(dir.length, true)}
+                disabled={dirLoading}
+                className="rounded-lg border border-navy/15 px-5 py-2 text-sm font-medium text-navy/70 transition-colors hover:border-gold/40 hover:text-navy disabled:opacity-50"
+              >
+                {t.empresas.loadMore}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

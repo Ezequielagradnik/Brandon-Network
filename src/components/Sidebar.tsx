@@ -10,13 +10,12 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type NavItem = {
   href: string;
-  key: "noticias" | "empresas";
+  key: "noticias";
   icon: React.ReactNode;
 };
 
 const NAV: NavItem[] = [
   { href: "/dashboard/noticias", key: "noticias", icon: <IconNews /> },
-  { href: "/dashboard/empresas", key: "empresas", icon: <IconCompanies /> },
 ];
 
 export type SidebarUser = {
@@ -448,16 +447,6 @@ function IconNews() {
       <path d="M4 5h13v14H4z" />
       <path d="M17 8h3v9a2 2 0 0 1-2 2" />
       <path d="M7 9h7M7 13h7M7 16h4" />
-    </svg>
-  );
-}
-function IconCompanies() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 21h18" />
-      <path d="M5 21V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v16" />
-      <path d="M13 9h5a1 1 0 0 1 1 1v11" />
-      <path d="M8 8h2M8 12h2M8 16h2M16 13h1M16 17h1" />
     </svg>
   );
 }
