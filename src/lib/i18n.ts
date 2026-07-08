@@ -131,6 +131,15 @@ export const dict = {
       noResults: "Sin resultados para tu búsqueda.",
       back: "Volver al listado",
     },
+    brandonChat: {
+      open: "Chatear con Brandon",
+      title: "Chat con Brandon",
+      status: "Te responde un asesor de Brandon",
+      greeting: "Hola. Escribinos y un asesor de Brandon te responde a la brevedad.",
+      placeholder: "Escribí tu mensaje…",
+      send: "Enviar",
+      close: "Cerrar",
+    },
     irs: {
       title: "Estado",
       accent: "fiscal",
@@ -287,6 +296,15 @@ export const dict = {
       noResults: "No results for your search.",
       back: "Back to the list",
     },
+    brandonChat: {
+      open: "Chat with Brandon",
+      title: "Chat with Brandon",
+      status: "A Brandon advisor will reply",
+      greeting: "Hi. Write to us and a Brandon advisor will get back to you shortly.",
+      placeholder: "Type your message…",
+      send: "Send",
+      close: "Close",
+    },
     irs: {
       title: "Tax",
       accent: "standing",
@@ -442,6 +460,15 @@ export const dict = {
       empty: "Ainda não há empresas carregadas. Um admin pode atualizar a lista.",
       noResults: "Sem resultados para a sua busca.",
       back: "Voltar à lista",
+    },
+    brandonChat: {
+      open: "Conversar com a Brandon",
+      title: "Chat com a Brandon",
+      status: "Um assessor da Brandon responde",
+      greeting: "Olá. Escreva para nós e um assessor da Brandon responde em breve.",
+      placeholder: "Escreva sua mensagem…",
+      send: "Enviar",
+      close: "Fechar",
     },
     irs: {
       title: "Situação",
