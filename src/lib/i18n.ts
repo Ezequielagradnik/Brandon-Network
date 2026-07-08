@@ -133,7 +133,8 @@ export const dict = {
     },
     brandonChat: {
       open: "Chatear con Brandon",
-      title: "Chat con Brandon",
+      title: "Chat con",
+      accent: "Brandon",
       status: "Te responde un asesor de Brandon",
       greeting: "Hola. Escribinos y un asesor de Brandon te responde a la brevedad.",
       placeholder: "Escribí tu mensaje…",
@@ -298,7 +299,8 @@ export const dict = {
     },
     brandonChat: {
       open: "Chat with Brandon",
-      title: "Chat with Brandon",
+      title: "Chat with",
+      accent: "Brandon",
       status: "A Brandon advisor will reply",
       greeting: "Hi. Write to us and a Brandon advisor will get back to you shortly.",
       placeholder: "Type your message…",
@@ -463,7 +465,8 @@ export const dict = {
     },
     brandonChat: {
       open: "Conversar com a Brandon",
-      title: "Chat com a Brandon",
+      title: "Chat com a",
+      accent: "Brandon",
       status: "Um assessor da Brandon responde",
       greeting: "Olá. Escreva para nós e um assessor da Brandon responde em breve.",
       placeholder: "Escreva sua mensagem…",
