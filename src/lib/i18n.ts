@@ -87,7 +87,7 @@ export const dict = {
       },
     },
     login: { phrasePre: "Preservando tu", phraseAccent: "legado", note: "Acceso exclusivo para clientes y administradores de Brandon Network.", google: "Continuar con Google", connecting: "Conectando…" },
-    sidebar: { asistente: "Asistente", noticias: "Noticias", empresas: "Empresas", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Cerrar sesión", expand: "Expandir", collapse: "Colapsar", newChat: "Nuevo chat", chats: "Tus chats", loadMore: "Cargar más", rename: "Renombrar", delete: "Eliminar", deleteConfirm: "¿Eliminar esta conversación?", deleteHint: "Esta acción no se puede deshacer.", cancel: "Cancelar", today: "Hoy", yesterday: "Ayer", last30: "Últimos 30 días", older: "Anteriores" },
+    sidebar: { asistente: "Asistente", noticias: "Noticias", empresas: "Empresas", brandon: "Chat con Brandon", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Cerrar sesión", expand: "Expandir", collapse: "Colapsar", newChat: "Nuevo chat", chats: "Tus chats", loadMore: "Cargar más", rename: "Renombrar", delete: "Eliminar", deleteConfirm: "¿Eliminar esta conversación?", deleteHint: "Esta acción no se puede deshacer.", cancel: "Cancelar", today: "Hoy", yesterday: "Ayer", last30: "Últimos 30 días", older: "Anteriores" },
     asistente: {
       title: "Tu asistente de",
       accent: "IA",
@@ -252,7 +252,7 @@ export const dict = {
       },
     },
     login: { phrasePre: "Preserving your", phraseAccent: "legacy", note: "Exclusive access for Brandon Network clients and administrators.", google: "Continue with Google", connecting: "Connecting…" },
-    sidebar: { asistente: "Assistant", noticias: "News", empresas: "Companies", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Sign out", expand: "Expand", collapse: "Collapse", newChat: "New chat", chats: "Your chats", loadMore: "Load more", rename: "Rename", delete: "Delete", deleteConfirm: "Delete this conversation?", deleteHint: "This action can't be undone.", cancel: "Cancel", today: "Today", yesterday: "Yesterday", last30: "Previous 30 days", older: "Older" },
+    sidebar: { asistente: "Assistant", noticias: "News", empresas: "Companies", brandon: "Chat with Brandon", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Sign out", expand: "Expand", collapse: "Collapse", newChat: "New chat", chats: "Your chats", loadMore: "Load more", rename: "Rename", delete: "Delete", deleteConfirm: "Delete this conversation?", deleteHint: "This action can't be undone.", cancel: "Cancel", today: "Today", yesterday: "Yesterday", last30: "Previous 30 days", older: "Older" },
     asistente: {
       title: "Your AI",
       accent: "assistant",
@@ -417,7 +417,7 @@ export const dict = {
       },
     },
     login: { phrasePre: "Preservando o seu", phraseAccent: "legado", note: "Acesso exclusivo para clientes e administradores da Brandon Network.", google: "Continuar com Google", connecting: "Conectando…" },
-    sidebar: { asistente: "Assistente", noticias: "Notícias", empresas: "Empresas", irs: "IRS", videos: "Vídeos", admin: "Admin", logout: "Sair", expand: "Expandir", collapse: "Recolher", newChat: "Novo chat", chats: "Suas conversas", loadMore: "Carregar mais", rename: "Renomear", delete: "Excluir", deleteConfirm: "Excluir esta conversa?", deleteHint: "Esta ação não pode ser desfeita.", cancel: "Cancelar", today: "Hoje", yesterday: "Ontem", last30: "Últimos 30 dias", older: "Anteriores" },
+    sidebar: { asistente: "Assistente", noticias: "Notícias", empresas: "Empresas", brandon: "Chat com a Brandon", irs: "IRS", videos: "Vídeos", admin: "Admin", logout: "Sair", expand: "Expandir", collapse: "Recolher", newChat: "Novo chat", chats: "Suas conversas", loadMore: "Carregar mais", rename: "Renomear", delete: "Excluir", deleteConfirm: "Excluir esta conversa?", deleteHint: "Esta ação não pode ser desfeita.", cancel: "Cancelar", today: "Hoje", yesterday: "Ontem", last30: "Últimos 30 dias", older: "Anteriores" },
     asistente: {
       title: "Seu assistente de",
       accent: "IA",

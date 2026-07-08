@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import Sidebar, { type SidebarUser } from "@/components/Sidebar";
-import BrandonChat from "@/components/BrandonChat";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
@@ -32,7 +31,6 @@ export default async function DashboardLayout({
     <div className="flex h-screen overflow-hidden bg-ivory text-navy">
       <Sidebar user={sidebarUser} />
       <main className="flex-1 overflow-y-auto">{children}</main>
-      <BrandonChat userId={user.id} />
     </div>
   );
 }
