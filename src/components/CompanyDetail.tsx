@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useLang } from "@/components/LangProvider";
+import TradingViewChart from "@/components/TradingViewChart";
 import type { News } from "@/components/ArticleReader";
 
 type Profile = {
@@ -105,6 +106,11 @@ export default function CompanyDetail({
             )}
           </div>
         )}
+      </div>
+
+      {/* Gráfico */}
+      <div className="mt-4">
+        <TradingViewChart symbol={profile?.ticker ?? symbol} />
       </div>
 
       {/* Novedades */}
