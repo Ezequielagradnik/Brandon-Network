@@ -87,7 +87,7 @@ export const dict = {
       },
     },
     login: { phrasePre: "Preservando tu", phraseAccent: "legado", note: "Acceso exclusivo para clientes y administradores de Brandon Network.", google: "Continuar con Google", connecting: "Conectando…" },
-    sidebar: { asistente: "Asistente", noticias: "Noticias", empresas: "Empresas", brandon: "Chat con Brandon", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Cerrar sesión", expand: "Expandir", collapse: "Colapsar", newChat: "Nuevo chat", chats: "Tus chats", loadMore: "Cargar más", rename: "Renombrar", delete: "Eliminar", deleteConfirm: "¿Eliminar esta conversación?", deleteHint: "Esta acción no se puede deshacer.", cancel: "Cancelar", today: "Hoy", yesterday: "Ayer", last30: "Últimos 30 días", older: "Anteriores" },
+    sidebar: { asistente: "Asistente", noticias: "Noticias", empresas: "Empresas", brandon: "Chat con Brandon", mensajes: "Mensajes", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Cerrar sesión", expand: "Expandir", collapse: "Colapsar", newChat: "Nuevo chat", chats: "Tus chats", loadMore: "Cargar más", rename: "Renombrar", delete: "Eliminar", deleteConfirm: "¿Eliminar esta conversación?", deleteHint: "Esta acción no se puede deshacer.", cancel: "Cancelar", today: "Hoy", yesterday: "Ayer", last30: "Últimos 30 días", older: "Anteriores" },
     asistente: {
       title: "Tu asistente de",
       accent: "IA",
@@ -140,6 +140,14 @@ export const dict = {
       placeholder: "Escribí tu mensaje…",
       send: "Enviar",
       close: "Cerrar",
+    },
+    bandeja: {
+      title: "Mensajes",
+      empty: "Todavía no hay conversaciones.",
+      pick: "Elegí una conversación para responder.",
+      placeholder: "Escribí una respuesta…",
+      send: "Enviar",
+      search: "Buscar cliente…",
     },
     irs: {
       title: "Estado",
@@ -253,7 +261,7 @@ export const dict = {
       },
     },
     login: { phrasePre: "Preserving your", phraseAccent: "legacy", note: "Exclusive access for Brandon Network clients and administrators.", google: "Continue with Google", connecting: "Connecting…" },
-    sidebar: { asistente: "Assistant", noticias: "News", empresas: "Companies", brandon: "Chat with Brandon", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Sign out", expand: "Expand", collapse: "Collapse", newChat: "New chat", chats: "Your chats", loadMore: "Load more", rename: "Rename", delete: "Delete", deleteConfirm: "Delete this conversation?", deleteHint: "This action can't be undone.", cancel: "Cancel", today: "Today", yesterday: "Yesterday", last30: "Previous 30 days", older: "Older" },
+    sidebar: { asistente: "Assistant", noticias: "News", empresas: "Companies", brandon: "Chat with Brandon", mensajes: "Messages", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Sign out", expand: "Expand", collapse: "Collapse", newChat: "New chat", chats: "Your chats", loadMore: "Load more", rename: "Rename", delete: "Delete", deleteConfirm: "Delete this conversation?", deleteHint: "This action can't be undone.", cancel: "Cancel", today: "Today", yesterday: "Yesterday", last30: "Previous 30 days", older: "Older" },
     asistente: {
       title: "Your AI",
       accent: "assistant",
@@ -306,6 +314,14 @@ export const dict = {
       placeholder: "Type your message…",
       send: "Send",
       close: "Close",
+    },
+    bandeja: {
+      title: "Messages",
+      empty: "No conversations yet.",
+      pick: "Pick a conversation to reply.",
+      placeholder: "Type a reply…",
+      send: "Send",
+      search: "Search client…",
     },
     irs: {
       title: "Tax",
@@ -419,7 +435,7 @@ export const dict = {
       },
     },
     login: { phrasePre: "Preservando o seu", phraseAccent: "legado", note: "Acesso exclusivo para clientes e administradores da Brandon Network.", google: "Continuar com Google", connecting: "Conectando…" },
-    sidebar: { asistente: "Assistente", noticias: "Notícias", empresas: "Empresas", brandon: "Chat com a Brandon", irs: "IRS", videos: "Vídeos", admin: "Admin", logout: "Sair", expand: "Expandir", collapse: "Recolher", newChat: "Novo chat", chats: "Suas conversas", loadMore: "Carregar mais", rename: "Renomear", delete: "Excluir", deleteConfirm: "Excluir esta conversa?", deleteHint: "Esta ação não pode ser desfeita.", cancel: "Cancelar", today: "Hoje", yesterday: "Ontem", last30: "Últimos 30 dias", older: "Anteriores" },
+    sidebar: { asistente: "Assistente", noticias: "Notícias", empresas: "Empresas", brandon: "Chat com a Brandon", mensajes: "Mensagens", irs: "IRS", videos: "Vídeos", admin: "Admin", logout: "Sair", expand: "Expandir", collapse: "Recolher", newChat: "Novo chat", chats: "Suas conversas", loadMore: "Carregar mais", rename: "Renomear", delete: "Excluir", deleteConfirm: "Excluir esta conversa?", deleteHint: "Esta ação não pode ser desfeita.", cancel: "Cancelar", today: "Hoje", yesterday: "Ontem", last30: "Últimos 30 dias", older: "Anteriores" },
     asistente: {
       title: "Seu assistente de",
       accent: "IA",
@@ -472,6 +488,14 @@ export const dict = {
       placeholder: "Escreva sua mensagem…",
       send: "Enviar",
       close: "Fechar",
+    },
+    bandeja: {
+      title: "Mensagens",
+      empty: "Ainda não há conversas.",
+      pick: "Escolha uma conversa para responder.",
+      placeholder: "Escreva uma resposta…",
+      send: "Enviar",
+      search: "Buscar cliente…",
     },
     irs: {
       title: "Situação",

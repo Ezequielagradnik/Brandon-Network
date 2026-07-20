@@ -53,7 +53,8 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
     .join("")
     .toUpperCase();
 
-  const isAdminActive = pathname.startsWith("/admin");
+  const isAdminActive = pathname === "/admin";
+  const isBandejaActive = pathname.startsWith("/admin/chats");
 
   // Historial de chats
   type Convo = { id: string; title: string; updated_at: string };
@@ -293,22 +294,40 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
         })}
 
         {user.role === "admin" && (
-          <Link
-            href="/admin"
-            title={collapsed ? t.sidebar.admin : undefined}
-            className={`group flex items-center gap-3 rounded-xl py-2.5 text-sm transition-all ${
-              collapsed ? "justify-center px-0" : "px-3"
-            } ${
-              isAdminActive
-                ? "bg-white/[0.06] text-ivory"
-                : "text-text-muted hover:bg-white/[0.03] hover:text-ivory"
-            }`}
-          >
-            <span className={isAdminActive ? "text-gold" : ""}>
-              <IconAdmin />
-            </span>
-            {!collapsed && t.sidebar.admin}
-          </Link>
+          <>
+            <Link
+              href="/admin"
+              title={collapsed ? t.sidebar.admin : undefined}
+              className={`group flex items-center gap-3 rounded-xl py-2.5 text-sm transition-all ${
+                collapsed ? "justify-center px-0" : "px-3"
+              } ${
+                isAdminActive
+                  ? "bg-white/[0.06] text-ivory"
+                  : "text-text-muted hover:bg-white/[0.03] hover:text-ivory"
+              }`}
+            >
+              <span className={isAdminActive ? "text-gold" : ""}>
+                <IconAdmin />
+              </span>
+              {!collapsed && t.sidebar.admin}
+            </Link>
+            <Link
+              href="/admin/chats"
+              title={collapsed ? t.sidebar.mensajes : undefined}
+              className={`group flex items-center gap-3 rounded-xl py-2.5 text-sm transition-all ${
+                collapsed ? "justify-center px-0" : "px-3"
+              } ${
+                isBandejaActive
+                  ? "bg-white/[0.06] text-ivory"
+                  : "text-text-muted hover:bg-white/[0.03] hover:text-ivory"
+              }`}
+            >
+              <span className={isBandejaActive ? "text-gold" : ""}>
+                <IconInbox />
+              </span>
+              {!collapsed && t.sidebar.mensajes}
+            </Link>
+          </>
         )}
       </nav>
 
@@ -456,6 +475,14 @@ function IconBrandon() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 20.5l1.4-5.6A8.5 8.5 0 1 1 21 11.5z" />
       <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" />
+    </svg>
+  );
+}
+function IconInbox() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 13h4l2 3h4l2-3h4" />
+      <path d="M5 5h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" />
     </svg>
   );
 }
