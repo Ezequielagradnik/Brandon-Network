@@ -11,6 +11,7 @@ type Conversation = {
   lastBody: string;
   lastAt: string;
   lastSender: string;
+  pending: number;
 };
 type Msg = {
   id: string;
@@ -133,12 +134,26 @@ export default function AdminChatsPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return convos;
-    return convos.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q),
-    );
+    const base = q
+      ? convos.filter(
+          (c) =>
+            c.name.toLowerCase().includes(q) ||
+            c.email.toLowerCase().includes(q),
+        )
+      : convos;
+    // Sin responder primero; dentro de cada grupo, por más reciente
+    return [...base].sort((a, b) => {
+      const ap = a.pending > 0 ? 0 : 1;
+      const bp = b.pending > 0 ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      return b.lastAt.localeCompare(a.lastAt);
+    });
   }, [convos, query]);
+
+  const pendingTotal = useMemo(
+    () => convos.filter((c) => c.pending > 0).length,
+    [convos],
+  );
 
   return (
     <div className="flex h-full">
@@ -149,7 +164,14 @@ export default function AdminChatsPage() {
         } w-full flex-col border-r border-navy/10 bg-white md:w-80`}
       >
         <div className="border-b border-navy/10 px-5 py-4">
-          <h1 className="font-display text-2xl text-navy">{t.bandeja.title}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="font-display text-2xl text-navy">{t.bandeja.title}</h1>
+            {pendingTotal > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--up)] px-1.5 text-[11px] font-semibold text-white">
+                {pendingTotal}
+              </span>
+            )}
+          </div>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -168,25 +190,53 @@ export default function AdminChatsPage() {
                 key={c.userId}
                 onClick={() => openConvo(c)}
                 className={`flex w-full items-center gap-3 border-b border-navy/[0.05] px-4 py-3 text-left transition-colors hover:bg-ivory/60 ${
-                  selected?.userId === c.userId ? "bg-ivory" : ""
+                  selected?.userId === c.userId
+                    ? "bg-ivory"
+                    : c.pending > 0
+                      ? "bg-[var(--up)]/[0.06]"
+                      : ""
                 }`}
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy font-display text-sm text-gold">
+                <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy font-display text-sm text-gold">
                   {initials(c.name)}
+                  {c.pending > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-[var(--up)]" />
+                  )}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-medium text-navy">
+                    <p
+                      className={`truncate text-sm text-navy ${
+                        c.pending > 0 ? "font-semibold" : "font-medium"
+                      }`}
+                    >
                       {c.name}
                     </p>
-                    <span className="tabular shrink-0 text-[11px] text-navy/40">
+                    <span
+                      className={`tabular shrink-0 text-[11px] ${
+                        c.pending > 0
+                          ? "font-medium text-[var(--up)]"
+                          : "text-navy/40"
+                      }`}
+                    >
                       {hhmm(c.lastAt)}
                     </span>
                   </div>
-                  <p className="truncate text-xs text-navy/50">
-                    {c.lastSender === "brandon" ? "Vos: " : ""}
-                    {c.lastBody}
-                  </p>
+                  <div className="mt-0.5 flex items-center justify-between gap-2">
+                    <p
+                      className={`truncate text-xs ${
+                        c.pending > 0 ? "text-navy/70" : "text-navy/50"
+                      }`}
+                    >
+                      {c.lastSender === "brandon" ? "Vos: " : ""}
+                      {c.lastBody}
+                    </p>
+                    {c.pending > 0 && (
+                      <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--up)] px-1.5 text-[11px] font-semibold text-white">
+                        {c.pending}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </button>
             ))

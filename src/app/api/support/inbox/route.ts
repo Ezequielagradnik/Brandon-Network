@@ -43,18 +43,32 @@ export async function GET(req: Request) {
     .select("user_id, sender, body, created_at")
     .order("created_at", { ascending: false });
 
-  const seen = new Map<
-    string,
-    { userId: string; lastBody: string; lastAt: string; lastSender: string }
-  >();
+  type Agg = {
+    userId: string;
+    lastBody: string;
+    lastAt: string;
+    lastSender: string;
+    pending: number; // mensajes del cliente sin responder (los más recientes)
+    counting: boolean; // seguimos contando pendientes desde el más nuevo
+  };
+  const seen = new Map<string, Agg>();
+  // msgs viene ordenado del más nuevo al más viejo
   for (const m of msgs ?? []) {
-    if (!seen.has(m.user_id)) {
-      seen.set(m.user_id, {
+    let c = seen.get(m.user_id);
+    if (!c) {
+      c = {
         userId: m.user_id,
         lastBody: m.body,
         lastAt: m.created_at,
         lastSender: m.sender,
-      });
+        pending: 0,
+        counting: true,
+      };
+      seen.set(m.user_id, c);
+    }
+    if (c.counting) {
+      if (m.sender === "client") c.pending++;
+      else c.counting = false; // llegamos a una respuesta de Brandon: cortamos
     }
   }
 
@@ -74,7 +88,11 @@ export async function GET(req: Request) {
   }
 
   const conversations = [...seen.values()].map((c) => ({
-    ...c,
+    userId: c.userId,
+    lastBody: c.lastBody,
+    lastAt: c.lastAt,
+    lastSender: c.lastSender,
+    pending: c.pending,
     name: profileMap.get(c.userId)?.name ?? "Cliente",
     email: profileMap.get(c.userId)?.email ?? "",
   }));
