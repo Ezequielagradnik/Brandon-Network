@@ -1,7 +1,10 @@
+import { Suspense } from "react";
 import PageHeader from "@/components/PageHeader";
 import AdminStats from "@/components/AdminStats";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getT, getLang } from "@/lib/lang";
+import type { Dict, Lang } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +37,7 @@ async function loadAdminData() {
     });
   }
 
-  const now = Date.now();
-  const d30 = now - 30 * 86400000;
+  const d30 = Date.now() - 30 * 86400000;
   const startToday = new Date();
   startToday.setHours(0, 0, 0, 0);
   const startMonth = new Date();
@@ -70,17 +72,29 @@ async function loadAdminData() {
   const total = rows.length;
   const activeUsers = rows.filter((r) => r.active).length;
 
-  return {
-    rows,
-    values: [activeUsers, loginsToday, total, newThisMonth],
-  };
+  return { rows, values: [activeUsers, loginsToday, total, newThisMonth] };
 }
 
 export default async function AdminPage() {
-  const t = await getT();
-  const lang = await getLang();
-  const locale = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-AR";
+  const [t, lang] = await Promise.all([getT(), getLang()]);
 
+  return (
+    <div className="mx-auto max-w-6xl px-8 py-10">
+      <PageHeader
+        title={t.admin.title}
+        accent={t.admin.accent}
+        subtitle={t.admin.subtitle}
+      />
+
+      <Suspense fallback={<AdminSkeleton />}>
+        <AdminData t={t} lang={lang} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
+  const locale = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-AR";
   const { rows, values } = await loadAdminData();
 
   const metrics = values.map((v, i) => ({
@@ -98,13 +112,7 @@ export default async function AdminPage() {
       : t.admin.never;
 
   return (
-    <div className="mx-auto max-w-6xl px-8 py-10">
-      <PageHeader
-        title={t.admin.title}
-        accent={t.admin.accent}
-        subtitle={t.admin.subtitle}
-      />
-
+    <>
       <div className="mt-8">
         <AdminStats metrics={metrics} />
       </div>
@@ -170,6 +178,6 @@ export default async function AdminPage() {
           </tbody>
         </table>
       </div>
-    </div>
+    </>
   );
 }
