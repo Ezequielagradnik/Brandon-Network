@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       model: "claude-haiku-4-5",
       max_tokens: 300,
       system:
-        "Sos parte del asistente de Brandon Network (finanzas, legal y tributario de EE.UU. para clientes de Latinoamérica). A partir de la conversación, generá 3 preguntas de seguimiento breves que el usuario probablemente querría hacer a continuación. Reglas: escribí en el MISMO idioma que usó el usuario. Cada pregunta en primera persona, concreta y accionable, máximo 9 palabras. Devolvé SOLO un arreglo JSON de 3 strings, sin texto adicional.",
+        "Eres parte del asistente de Brandon Network (finanzas, legal y tributario de EE. UU. para clientes de Latinoamérica). A partir de la conversación, genera 3 preguntas de seguimiento breves que el usuario probablemente querría hacer a continuación. Reglas: escribe en el MISMO idioma que usó el usuario; en español usa español neutro y profesional, sin voseo ni regionalismos (nada de 'vos', 'tenés', 'podés'). Cada pregunta en primera persona, concreta y accionable, máximo 9 palabras. Devuelve SOLO un arreglo JSON de 3 strings, sin texto adicional.",
       messages: [{ role: "user", content: transcript }],
     });
 
