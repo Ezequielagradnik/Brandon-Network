@@ -14,7 +14,7 @@ type Row = {
   name: string;
   email: string;
   role: string;
-  lastSignIn: number | null;
+  lastAccess: number | null;
   active: boolean;
   credits: number;
 };
@@ -29,7 +29,7 @@ async function loadAdminData() {
   chatsSince.setDate(chatsSince.getDate() - (DAYS - 1));
 
   const [{ data: profiles }, authRes, { data: chatMsgs }] = await Promise.all([
-    admin.from("profiles").select("id, full_name, email, role, credits"),
+    admin.from("profiles").select("id, full_name, email, role, credits, last_seen_at"),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin
       .from("support_messages")
@@ -74,10 +74,13 @@ async function loadAdminData() {
   for (const p of profiles ?? []) {
     const a = authMap.get(p.id);
     const email = p.email || a?.email || "";
-    const last = a?.last_sign_in_at ? Date.parse(a.last_sign_in_at) : null;
+    const login = a?.last_sign_in_at ? Date.parse(a.last_sign_in_at) : null;
+    const seen = p.last_seen_at ? Date.parse(p.last_seen_at) : null;
+    // "Último acceso" real: la fecha más reciente entre login y actividad
+    const lastAccess = Math.max(login ?? 0, seen ?? 0) || null;
     const created = a?.created_at ? Date.parse(a.created_at) : null;
 
-    if (last && last >= startToday.getTime()) loginsToday++;
+    if (login && login >= startToday.getTime()) loginsToday++;
     if (created && created >= startMonth.getTime()) newThisMonth++;
 
     rows.push({
@@ -85,13 +88,13 @@ async function loadAdminData() {
       name: p.full_name || email.split("@")[0] || "Usuario",
       email,
       role: p.role || "cliente",
-      lastSignIn: last,
-      active: last != null && last >= d30,
+      lastAccess,
+      active: lastAccess != null && lastAccess >= d30,
       credits: typeof p.credits === "number" ? p.credits : 0,
     });
   }
 
-  rows.sort((a, b) => (b.lastSignIn ?? 0) - (a.lastSignIn ?? 0));
+  rows.sort((a, b) => (b.lastAccess ?? 0) - (a.lastAccess ?? 0));
 
   const total = rows.length;
   const activeUsers = rows.filter((r) => r.active).length;
@@ -202,7 +205,7 @@ async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
                   <span className="text-xs text-navy/35"> / 500</span>
                 </td>
                 <td className="tabular hidden px-6 py-4 text-navy/55 md:table-cell">
-                  {fmtLast(u.lastSignIn)}
+                  {fmtLast(u.lastAccess)}
                 </td>
                 <td className="px-6 py-4">
                   <span className="inline-flex items-center gap-1.5 text-xs text-navy/60">
