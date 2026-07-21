@@ -26,6 +26,7 @@ function Assistant() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [followups, setFollowups] = useState<string[]>([]);
+  const [credits, setCredits] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const convIdRef = useRef<string | null>(cid);
   const skipLoad = useRef(false);
@@ -72,9 +73,28 @@ function Assistant() {
     });
   }, [messages]);
 
+  // Créditos
+  useEffect(() => {
+    fetch("/api/credits", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setCredits(d.credits))
+      .catch(() => {});
+  }, []);
+
   async function send(text: string) {
     const clean = text.trim();
     if (!clean || loading) return;
+
+    // Sin créditos: feedback inmediato, sin llamar a la API
+    if (credits !== null && credits < 50) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: clean },
+        { role: "assistant", content: `⚠️ ${t.asistente.noCredits}` },
+      ]);
+      setInput("");
+      return;
+    }
     setInput("");
 
     const next: Msg[] = [...messages, { role: "user", content: clean }];
@@ -119,7 +139,23 @@ function Assistant() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: next }),
       });
+
+      if (res.status === 402) {
+        setCredits(0);
+        setMessages((prev) => {
+          const copy = [...prev];
+          copy[copy.length - 1] = {
+            role: "assistant",
+            content: `⚠️ ${t.asistente.noCredits}`,
+          };
+          return copy;
+        });
+        return;
+      }
       if (!res.ok || !res.body) throw new Error(await res.text());
+
+      const rem = res.headers.get("X-Credits-Remaining");
+      if (rem !== null) setCredits(parseInt(rem, 10));
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -296,7 +332,11 @@ function Assistant() {
           />
           <button
             type="submit"
-            disabled={loading || !input.trim()}
+            disabled={
+              loading ||
+              !input.trim() ||
+              (credits !== null && credits < 50)
+            }
             aria-label={t.asistente.send}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy text-ivory transition-all hover:bg-navy-2 disabled:opacity-40"
           >
@@ -307,6 +347,14 @@ function Assistant() {
         </div>
         <p className="mt-2 text-center text-[11px] text-navy/35">
           {t.asistente.disclaimer}
+          {credits !== null && (
+            <>
+              {" · "}
+              <span className={credits < 50 ? "font-medium text-down" : "text-navy/45"}>
+                {t.asistente.creditsLeft.replace("{n}", String(credits))}
+              </span>
+            </>
+          )}
         </p>
       </form>
     </div>

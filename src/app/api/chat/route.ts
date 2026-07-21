@@ -177,6 +177,19 @@ export async function POST(req: Request) {
     return new Response("JSON inválido", { status: 400 });
   }
 
+  // Sistema de créditos: cada pregunta cuesta COST (500 créditos = 10 preguntas)
+  const COST = 50;
+  const { data: remaining, error: creditErr } = await supabase.rpc(
+    "spend_credits",
+    { cost: COST },
+  );
+  if (creditErr) {
+    return new Response("No se pudieron verificar los créditos", { status: 500 });
+  }
+  if (typeof remaining !== "number" || remaining < 0) {
+    return new Response("Sin créditos", { status: 402 });
+  }
+
   const messages: Anthropic.MessageParam[] = incoming.map((m) => ({
     role: m.role,
     content: m.content,
@@ -234,6 +247,7 @@ export async function POST(req: Request) {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-store",
+      "X-Credits-Remaining": String(remaining),
     },
   });
 }

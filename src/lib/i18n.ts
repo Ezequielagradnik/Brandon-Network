@@ -96,6 +96,9 @@ export const dict = {
       placeholder: "Escribí tu consulta…",
       send: "Enviar",
       disclaimer: "Brandon Network puede cometer errores. Verificá la información importante.",
+      creditsLeft: "{n}/500 créditos",
+      questionsLeft: "{n} consultas restantes",
+      noCredits: "Te quedaste sin créditos. Cada consulta usa 50 y ya usaste tu cupo. Contactá a Brandon para reponerlos.",
     },
     noticias: {
       title: "Noticias del",
@@ -282,6 +285,9 @@ export const dict = {
       placeholder: "Type your question…",
       send: "Send",
       disclaimer: "Brandon Network can make mistakes. Verify important information.",
+      creditsLeft: "{n}/500 credits",
+      questionsLeft: "{n} questions left",
+      noCredits: "You're out of credits. Each question uses 50 and you've used your quota. Contact Brandon to top up.",
     },
     noticias: {
       title: "Market",
@@ -468,6 +474,9 @@ export const dict = {
       placeholder: "Escreva a sua consulta…",
       send: "Enviar",
       disclaimer: "A Brandon Network pode cometer erros. Verifique as informações importantes.",
+      creditsLeft: "{n}/500 créditos",
+      questionsLeft: "{n} consultas restantes",
+      noCredits: "Você ficou sem créditos. Cada pergunta usa 50 e você já usou sua cota. Fale com a Brandon para repor.",
     },
     noticias: {
       title: "Notícias do",
