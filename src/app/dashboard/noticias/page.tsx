@@ -49,7 +49,7 @@ export default function NoticiasPage() {
           return (
             <div
               key={i}
-              className="flex min-w-[130px] shrink-0 flex-col rounded-xl border border-navy/10 bg-white px-4 py-2.5"
+              className="flex min-w-[130px] flex-1 flex-col rounded-xl border border-navy/10 bg-white px-4 py-2.5"
             >
               {q ? (
                 <>
