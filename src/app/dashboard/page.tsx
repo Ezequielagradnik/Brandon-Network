@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLang } from "@/components/LangProvider";
 import SuggestionCarousel from "@/components/SuggestionCarousel";
 import Markdown from "@/components/Markdown";
+import { exportChatToPdf } from "@/lib/exportChat";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -17,7 +18,7 @@ export default function AsistentePage() {
 }
 
 function Assistant() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const router = useRouter();
   const params = useSearchParams();
   const cid = params.get("c");
@@ -231,10 +232,36 @@ function Assistant() {
 
   const empty = messages.length === 0;
 
+  function handleExport() {
+    const locale = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-419";
+    exportChatToPdf(messages, {
+      title: t.asistente.exportTitle,
+      you: t.asistente.exportYou,
+      dateStr: new Date().toLocaleDateString(locale, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+    });
+  }
+
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-6">
       {!empty && (
-        <header className="animate-fade-up pt-10">
+        <div className="flex pt-6">
+          <button
+            onClick={handleExport}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-navy/15 px-3 py-1.5 text-xs font-medium text-navy/60 transition-colors hover:border-gold/40 hover:text-navy"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
+            </svg>
+            {t.asistente.exportPdf}
+          </button>
+        </div>
+      )}
+      {!empty && (
+        <header className="animate-fade-up pt-4">
           <h1 className="font-display text-4xl leading-tight text-navy sm:text-5xl">
             {t.asistente.title}{" "}
             <span className="italic text-gold">{t.asistente.accent}</span>
