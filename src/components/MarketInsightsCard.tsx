@@ -4,6 +4,22 @@ import { useState } from "react";
 import { useLang } from "@/components/LangProvider";
 import type { News } from "@/components/ArticleReader";
 
+// Miniatura de la noticia; si la imagen falla, no ocupa lugar.
+function NewsThumb({ src, alt }: { src: string; alt: string }) {
+  const [err, setErr] = useState(false);
+  if (err) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      onError={() => setErr(true)}
+      className="w-24 shrink-0 self-stretch object-cover sm:w-28"
+    />
+  );
+}
+
 export default function MarketInsightsCard({
   news,
   loading,
@@ -51,16 +67,19 @@ export default function MarketInsightsCard({
               <button
                 key={i}
                 onClick={() => onOpen(n)}
-                className="group block w-full rounded-xl border border-navy/10 bg-white p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-[0_8px_30px_-14px_rgba(11,27,46,0.2)]"
+                className="group flex w-full overflow-hidden rounded-xl border border-navy/10 bg-white text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-[0_8px_30px_-14px_rgba(11,27,46,0.2)]"
               >
-                <div className="flex items-center gap-2 text-xs text-navy/45">
-                  <span className="font-medium text-navy/65">{n.publisher}</span>
-                  <span>·</span>
-                  <span className="tabular">{ago(n.time)}</span>
+                <div className="min-w-0 flex-1 p-4">
+                  <div className="flex items-center gap-2 text-xs text-navy/45">
+                    <span className="font-medium text-navy/65">{n.publisher}</span>
+                    <span>·</span>
+                    <span className="tabular">{ago(n.time)}</span>
+                  </div>
+                  <h3 className="mt-2 text-[15px] font-medium leading-snug text-navy group-hover:text-gold">
+                    {n.title}
+                  </h3>
                 </div>
-                <h3 className="mt-2 text-[15px] font-medium leading-snug text-navy group-hover:text-gold">
-                  {n.title}
-                </h3>
+                {n.image && <NewsThumb src={n.image} alt={n.publisher} />}
               </button>
             ))}
       </div>

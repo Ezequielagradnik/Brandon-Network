@@ -7,6 +7,8 @@ export type News = {
   publisher: string;
   link: string;
   time: number;
+  image?: string;
+  summary?: string;
 };
 
 export default function ArticleReader({

@@ -3,7 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 export const maxDuration = 30;
 
 type Quote = { label: string; price: number; changePct: number | null };
-type News = { title: string; publisher: string; link: string; time: number };
+type News = {
+  title: string;
+  publisher: string;
+  link: string;
+  time: number;
+  image?: string;
+  summary?: string;
+};
 
 const FINNHUB_INDICES = [
   { s: "SPY", label: "S&P 500" },
@@ -75,6 +82,41 @@ async function googleNews(): Promise<News[]> {
   }
 }
 
+// Noticias de mercado con imagen real (Finnhub).
+async function finnhubNews(): Promise<News[]> {
+  const key = process.env.FINNHUB_API_KEY;
+  if (!key) return [];
+  try {
+    const r = await fetch(
+      `https://finnhub.io/api/v1/news?category=general&token=${key}`,
+      { cache: "no-store" },
+    );
+    if (!r.ok) return [];
+    const arr = await r.json();
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .map((n: {
+        headline?: string;
+        source?: string;
+        url?: string;
+        datetime?: number;
+        image?: string;
+        summary?: string;
+      }) => ({
+        title: n.headline ?? "",
+        publisher: n.source ?? "",
+        link: n.url ?? "",
+        time: n.datetime ?? 0,
+        image: n.image || undefined,
+        summary: n.summary || undefined,
+      }))
+      .filter((n: News) => n.title && n.link && n.time > 0)
+      .slice(0, 18);
+  } catch {
+    return [];
+  }
+}
+
 // --- Finnhub (requiere FINNHUB_API_KEY, gratis) ---
 
 async function finnhubQuotes(list: { s: string; label: string }[]) {
@@ -105,13 +147,16 @@ export async function GET() {
   } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
 
-  const [btc, news, fhIndices, stocks] = await Promise.all([
+  const [btc, fhNews, gNews, fhIndices, stocks] = await Promise.all([
     cryptoBTC(),
+    finnhubNews(),
     googleNews(),
     finnhubQuotes(FINNHUB_INDICES),
     finnhubQuotes(FINNHUB_STOCKS),
   ]);
 
+  // Preferimos las de Finnhub (traen foto); si no hay, caemos a Google News.
+  const news = fhNews.length ? fhNews : gNews;
   const indices: Quote[] = [...fhIndices, ...(btc ? [btc] : [])];
 
   return Response.json(
