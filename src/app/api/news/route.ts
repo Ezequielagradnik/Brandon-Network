@@ -82,27 +82,56 @@ async function googleNews(): Promise<News[]> {
   }
 }
 
-// Noticias de mercado con imagen real (Finnhub).
+// Feed de noticias con foto real y fuentes variadas: juntamos las noticias
+// de varias empresas grandes (traen foto de la nota, no el logo de la agencia).
+const NEWS_TICKERS = [
+  "AAPL",
+  "MSFT",
+  "NVDA",
+  "AMZN",
+  "TSLA",
+  "META",
+  "GOOGL",
+  "JPM",
+];
+
+type FinnhubArticle = {
+  headline?: string;
+  source?: string;
+  url?: string;
+  datetime?: number;
+  image?: string;
+  summary?: string;
+};
+
 async function finnhubNews(): Promise<News[]> {
   const key = process.env.FINNHUB_API_KEY;
   if (!key) return [];
+
+  const to = new Date();
+  const from = new Date(to.getTime() - 4 * 86400000);
+  const ymd = (d: Date) => d.toISOString().slice(0, 10);
+
   try {
-    const r = await fetch(
-      `https://finnhub.io/api/v1/news?category=general&token=${key}`,
-      { cache: "no-store" },
+    const perTicker = await Promise.all(
+      NEWS_TICKERS.map(async (s) => {
+        try {
+          const r = await fetch(
+            `https://finnhub.io/api/v1/company-news?symbol=${s}&from=${ymd(from)}&to=${ymd(to)}&token=${key}`,
+            { cache: "no-store" },
+          );
+          if (!r.ok) return [] as FinnhubArticle[];
+          const arr = await r.json();
+          return (Array.isArray(arr) ? arr : []) as FinnhubArticle[];
+        } catch {
+          return [] as FinnhubArticle[];
+        }
+      }),
     );
-    if (!r.ok) return [];
-    const arr = await r.json();
-    if (!Array.isArray(arr)) return [];
-    return arr
-      .map((n: {
-        headline?: string;
-        source?: string;
-        url?: string;
-        datetime?: number;
-        image?: string;
-        summary?: string;
-      }) => ({
+
+    const all = perTicker
+      .flat()
+      .map((n) => ({
         title: n.headline ?? "",
         publisher: n.source ?? "",
         link: n.url ?? "",
@@ -110,8 +139,22 @@ async function finnhubNews(): Promise<News[]> {
         image: n.image || undefined,
         summary: n.summary || undefined,
       }))
-      .filter((n: News) => n.title && n.link && n.time > 0)
-      .slice(0, 18);
+      .filter((n) => n.title && n.link && n.time > 0 && n.image)
+      .sort((a, b) => b.time - a.time);
+
+    // Dedupe por URL y por imagen (evita notas repetidas y logos repetidos)
+    const seenUrl = new Set<string>();
+    const seenImg = new Set<string>();
+    const out: News[] = [];
+    for (const n of all) {
+      if (seenUrl.has(n.link)) continue;
+      if (n.image && seenImg.has(n.image)) continue;
+      seenUrl.add(n.link);
+      if (n.image) seenImg.add(n.image);
+      out.push(n);
+      if (out.length >= 18) break;
+    }
+    return out;
   } catch {
     return [];
   }
