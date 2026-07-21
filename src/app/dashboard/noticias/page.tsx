@@ -41,25 +41,25 @@ export default function NoticiasPage() {
 
   return (
     <div className="flex h-full flex-col px-6 py-6 lg:px-8">
-      {/* Franja de índices */}
-      <div className="no-scrollbar -mx-2 flex shrink-0 gap-2 overflow-x-auto px-2 pb-4">
-        {(indices.length ? indices : Array.from({ length: 6 })).map((idx, i) => {
+      {/* Franja de índices (todo en USD) */}
+      <div className="grid shrink-0 grid-cols-2 gap-3 pb-5 sm:grid-cols-3 lg:grid-cols-5">
+        {(indices.length ? indices : Array.from({ length: 5 })).map((idx, i) => {
           const q = idx as Quote | undefined;
           const up = q?.changePct != null && q.changePct >= 0;
           return (
             <div
               key={i}
-              className="flex min-w-[130px] flex-1 flex-col rounded-xl border border-navy/10 bg-white px-4 py-2.5"
+              className="flex flex-col rounded-2xl border border-navy/10 bg-white px-5 py-4"
             >
               {q ? (
                 <>
-                  <span className="text-[11px] text-navy/50">{q.label}</span>
-                  <span className="tabular mt-0.5 text-base font-medium text-navy">
-                    {fmt(q.price)}
+                  <span className="text-xs text-navy/50">{q.label}</span>
+                  <span className="tabular mt-1.5 text-2xl font-medium text-navy">
+                    ${fmt(q.price)}
                   </span>
                   {q.changePct != null && (
                     <span
-                      className="tabular text-[11px] font-medium"
+                      className="tabular mt-1 text-sm font-medium"
                       style={{ color: up ? "var(--up)" : "var(--down)" }}
                     >
                       {up ? "▲" : "▼"} {Math.abs(q.changePct).toFixed(2)}%
@@ -67,9 +67,10 @@ export default function NoticiasPage() {
                   )}
                 </>
               ) : (
-                <div className="space-y-1.5">
-                  <div className="h-2.5 w-14 rounded bg-navy/10" />
-                  <div className="h-3.5 w-16 rounded bg-navy/10" />
+                <div className="space-y-2">
+                  <div className="h-3 w-16 rounded bg-navy/10" />
+                  <div className="h-6 w-24 rounded bg-navy/10" />
+                  <div className="h-3 w-12 rounded bg-navy/10" />
                 </div>
               )}
             </div>

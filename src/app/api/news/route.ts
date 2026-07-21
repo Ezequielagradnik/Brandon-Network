@@ -9,9 +9,7 @@ const FINNHUB_INDICES = [
   { s: "SPY", label: "S&P 500" },
   { s: "QQQ", label: "Nasdaq" },
   { s: "DIA", label: "Dow Jones" },
-  { s: "IWM", label: "Russell 2000" },
   { s: "GLD", label: "Oro" },
-  { s: "USO", label: "Petróleo" },
 ];
 const FINNHUB_STOCKS = [
   { s: "AAPL", label: "Apple" },
@@ -26,59 +24,20 @@ const FINNHUB_STOCKS = [
 
 // --- Fuentes keyless (funcionan desde el server) ---
 
-async function crypto(): Promise<Quote[]> {
+async function cryptoBTC(): Promise<Quote | null> {
   try {
     const r = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true",
+      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true",
       { cache: "no-store" },
     );
-    if (!r.ok) return [];
+    if (!r.ok) return null;
     const j = await r.json();
-    const out: Quote[] = [];
-    if (j?.bitcoin)
-      out.push({
-        label: "Bitcoin",
-        price: j.bitcoin.usd,
-        changePct: j.bitcoin.usd_24h_change ?? null,
-      });
-    if (j?.ethereum)
-      out.push({
-        label: "Ethereum",
-        price: j.ethereum.usd,
-        changePct: j.ethereum.usd_24h_change ?? null,
-      });
-    return out;
+    const b = j?.bitcoin;
+    if (!b) return null;
+    return { label: "Bitcoin", price: b.usd, changePct: b.usd_24h_change ?? null };
   } catch {
-    return [];
+    return null;
   }
-}
-
-async function dolares(): Promise<Quote[]> {
-  const sources = [
-    { url: "https://dolarapi.com/v1/dolares/blue", label: "Dólar blue" },
-    { url: "https://dolarapi.com/v1/dolares/oficial", label: "Dólar oficial" },
-    { url: "https://dolarapi.com/v1/dolares/bolsa", label: "Dólar MEP" },
-    { url: "https://dolarapi.com/v1/cotizaciones/eur", label: "Euro" },
-  ];
-  const found = new Map<string, Quote>();
-  await Promise.all(
-    sources.map(async (s) => {
-      try {
-        const r = await fetch(s.url, { cache: "no-store" });
-        if (!r.ok) return;
-        const j = await r.json();
-        if (typeof j?.venta === "number") {
-          found.set(s.label, { label: s.label, price: j.venta, changePct: null });
-        }
-      } catch {
-        /* skip */
-      }
-    }),
-  );
-  // Mantener el orden de `sources`
-  return sources
-    .map((s) => found.get(s.label))
-    .filter((q): q is Quote => Boolean(q));
 }
 
 async function googleNews(): Promise<News[]> {
@@ -146,15 +105,14 @@ export async function GET() {
   } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
 
-  const [cryptos, dolar, news, fhIndices, stocks] = await Promise.all([
-    crypto(),
-    dolares(),
+  const [btc, news, fhIndices, stocks] = await Promise.all([
+    cryptoBTC(),
     googleNews(),
     finnhubQuotes(FINNHUB_INDICES),
     finnhubQuotes(FINNHUB_STOCKS),
   ]);
 
-  const indices: Quote[] = [...fhIndices, ...cryptos, ...dolar];
+  const indices: Quote[] = [...fhIndices, ...(btc ? [btc] : [])];
 
   return Response.json(
     { indices, stocks, news },
