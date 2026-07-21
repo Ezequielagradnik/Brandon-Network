@@ -105,7 +105,13 @@ type FinnhubArticle = {
 };
 
 // Solo estas fuentes: traen imágenes reales y relevantes (no logos ni stock genérico).
-const ALLOWED_SOURCES = ["seekingalpha", "benzinga", "cnbc"];
+const ALLOWED_SOURCES = [
+  "seekingalpha",
+  "benzinga",
+  "cnbc",
+  "bloomberg",
+  "marketwatch",
+];
 const normSource = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
 
 async function finnhubNews(): Promise<News[]> {
