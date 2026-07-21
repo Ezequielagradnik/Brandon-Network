@@ -104,6 +104,10 @@ type FinnhubArticle = {
   summary?: string;
 };
 
+// Solo estas fuentes: traen imágenes reales y relevantes (no logos ni stock genérico).
+const ALLOWED_SOURCES = ["seekingalpha", "benzinga", "cnbc"];
+const normSource = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+
 async function finnhubNews(): Promise<News[]> {
   const key = process.env.FINNHUB_API_KEY;
   if (!key) return [];
@@ -139,7 +143,14 @@ async function finnhubNews(): Promise<News[]> {
         image: n.image || undefined,
         summary: n.summary || undefined,
       }))
-      .filter((n) => n.title && n.link && n.time > 0 && n.image)
+      .filter(
+        (n) =>
+          n.title &&
+          n.link &&
+          n.time > 0 &&
+          n.image &&
+          ALLOWED_SOURCES.some((a) => normSource(n.publisher).includes(a)),
+      )
       .sort((a, b) => b.time - a.time);
 
     // Dedupe por URL y por imagen (evita notas repetidas y logos repetidos)
