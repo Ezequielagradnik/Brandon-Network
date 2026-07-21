@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-// Logo real de la empresa (URL de Finnhub). Si no carga, cae a la inicial.
+// Logo real de la empresa. Intenta, en orden:
+// 1) el logo explícito (Finnhub, para destacados/detalle)
+// 2) el CDN de logos por ticker (FMP, cubre casi todo el Nasdaq)
+// 3) la inicial como último recurso.
 export default function CompanyLogo({
   logo,
   symbol,
@@ -12,23 +15,34 @@ export default function CompanyLogo({
   symbol: string;
   size?: number;
 }) {
-  const [err, setErr] = useState(false);
+  const candidates: string[] = [];
+  if (logo) candidates.push(logo);
+  if (symbol)
+    candidates.push(
+      `https://financialmodelingprep.com/image-stock/${encodeURIComponent(
+        symbol,
+      )}.png`,
+    );
+
+  const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    setErr(false);
+    setIdx(0);
   }, [logo, symbol]);
 
   const box = { width: size, height: size };
+  const src = candidates[idx];
 
-  if (logo && !err) {
+  if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={logo}
+        src={src}
         alt={symbol}
+        loading="lazy"
         style={box}
-        onError={() => setErr(true)}
-        className="shrink-0 rounded-xl object-contain ring-1 ring-navy/10"
+        onError={() => setIdx((i) => i + 1)}
+        className="shrink-0 rounded-xl bg-white object-contain ring-1 ring-navy/10"
       />
     );
   }
