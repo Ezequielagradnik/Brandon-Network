@@ -22,12 +22,12 @@ export default function ArticleReader({
 }) {
   const [content, setContent] = useState("");
   const [reading, setReading] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [imgErr, setImgErr] = useState(false);
 
   useEffect(() => {
     if (!article) return;
     setContent("");
-    setFailed(false);
+    setImgErr(false);
     setReading(true);
     let cancel = false;
     fetch(`/api/article?url=${encodeURIComponent(article.link)}`, {
@@ -35,11 +35,9 @@ export default function ArticleReader({
     })
       .then((r) => r.json())
       .then((d) => {
-        if (cancel) return;
-        if (d?.ok && d.content) setContent(d.content);
-        else setFailed(true);
+        if (!cancel && d?.ok && d.content) setContent(d.content);
       })
-      .catch(() => !cancel && setFailed(true))
+      .catch(() => {})
       .finally(() => !cancel && setReading(false));
     return () => {
       cancel = true;
@@ -56,6 +54,9 @@ export default function ArticleReader({
   }, [article, onClose]);
 
   if (!article) return null;
+
+  // Texto completo si se pudo scrapear; si no, el resumen de la fuente.
+  const body = content || article.summary || "";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -87,27 +88,44 @@ export default function ArticleReader({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-          {reading ? (
-            <div className="space-y-2.5">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-3.5 rounded bg-navy/10"
-                  style={{ width: `${70 + ((i * 7) % 30)}%` }}
-                />
-              ))}
-            </div>
-          ) : failed ? (
-            <p className="text-sm leading-relaxed text-navy/60">
-              No se pudo cargar el artículo acá (el medio lo bloquea o requiere
-              suscripción). Podés abrirlo en la fuente.
-            </p>
-          ) : (
-            <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-navy/80">
-              {content}
-            </div>
+        <div className="flex-1 overflow-y-auto">
+          {article.image && !imgErr && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={article.image}
+              alt={article.title}
+              onError={() => setImgErr(true)}
+              className="max-h-64 w-full bg-navy/5 object-cover"
+            />
           )}
+
+          <div className="px-6 py-5">
+            {body ? (
+              <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-navy/80">
+                {body}
+              </div>
+            ) : reading ? (
+              <div className="space-y-2.5">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-3.5 rounded bg-navy/10"
+                    style={{ width: `${70 + ((i * 7) % 30)}%` }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed text-navy/60">
+                No se pudo cargar la vista previa. Podés abrir la nota completa en
+                la fuente.
+              </p>
+            )}
+
+            {/* Mientras busca el texto completo, si ya mostramos el resumen */}
+            {reading && article.summary && !content && (
+              <p className="mt-3 text-xs text-navy/40">Cargando artículo…</p>
+            )}
+          </div>
         </div>
 
         <div className="border-t border-navy/10 px-6 py-4 text-right">
