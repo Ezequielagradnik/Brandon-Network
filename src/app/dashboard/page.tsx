@@ -248,12 +248,12 @@ function Assistant() {
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-6">
       {!empty && (
-        <div className="flex pt-6">
+        <div className="flex justify-end pt-6">
           <button
             onClick={handleExport}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-navy/15 px-3 py-1.5 text-xs font-medium text-navy/60 transition-colors hover:border-gold/40 hover:text-navy"
+            className="inline-flex items-center gap-2 rounded-xl border border-navy/15 bg-white px-4 py-2.5 text-sm font-medium text-navy/70 shadow-[0_4px_16px_-8px_rgba(11,27,46,0.3)] transition-colors hover:border-gold/50 hover:text-navy"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
             </svg>
             {t.asistente.exportPdf}
