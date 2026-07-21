@@ -32,8 +32,7 @@ export default function MarketInsightsCard({
   ago: (t: number) => string;
 }) {
   const { t } = useLang();
-  const [all, setAll] = useState(false);
-  const shown = all ? news : news.slice(0, 6);
+  const shown = news;
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[var(--radius-card)] border border-navy/10 bg-white shadow-[0_10px_40px_-24px_rgba(11,27,46,0.35)]">
@@ -41,19 +40,11 @@ export default function MarketInsightsCard({
         <h2 className="font-display text-2xl text-navy">
           {t.noticias.companies.marketInsights}
         </h2>
-        {news.length > 6 && (
-          <button
-            onClick={() => setAll((v) => !v)}
-            className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs font-medium text-navy/60 transition-colors hover:border-gold/40 hover:text-navy"
-          >
-            {all ? t.noticias.companies.verMenos : t.noticias.companies.verTodo}
-          </button>
-        )}
       </div>
 
       <div className="flex-1 space-y-2.5 overflow-y-auto p-4">
         {loading
-          ? Array.from({ length: 5 }).map((_, i) => (
+          ? Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
                 className="rounded-xl border border-navy/10 p-4"

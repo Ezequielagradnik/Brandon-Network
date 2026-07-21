@@ -152,7 +152,7 @@ async function finnhubNews(): Promise<News[]> {
       seenUrl.add(n.link);
       if (n.image) seenImg.add(n.image);
       out.push(n);
-      if (out.length >= 18) break;
+      if (out.length >= 24) break;
     }
     return out;
   } catch {
