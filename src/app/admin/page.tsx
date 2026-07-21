@@ -128,14 +128,6 @@ async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
     value: v.toLocaleString(locale),
   }));
 
-  const points = buckets.map((b) => ({
-    label: new Date(b.dayStart).toLocaleDateString(locale, {
-      day: "numeric",
-      month: "numeric",
-    }),
-    count: b.count,
-  }));
-  const chatsToday = buckets[buckets.length - 1]?.count ?? 0;
 
   const fmtLast = (ts: number | null) =>
     ts
@@ -154,11 +146,10 @@ async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
 
       <div className="mt-6">
         <UsageChart
-          points={points}
+          initialBuckets={buckets}
           title={t.admin.activityTitle}
           subtitle={t.admin.chatsPerDay + " · " + t.admin.last14}
           todayLabel={t.admin.chatsToday}
-          todayCount={chatsToday}
         />
       </div>
 
