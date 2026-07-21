@@ -1,36 +1,33 @@
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-6xl px-8 py-10">
-      <div className="animate-pulse">
-        {/* Título */}
-        <div className="h-10 w-64 max-w-full rounded bg-navy/10" />
-        <div className="mt-3 h-4 w-96 max-w-full rounded bg-navy/10" />
-
-        {/* Índices */}
-        <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-navy/10 bg-navy/10 sm:grid-cols-3 lg:grid-cols-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="space-y-2 bg-white px-5 py-4">
-              <div className="h-3 w-16 rounded bg-navy/10" />
-              <div className="h-4 w-20 rounded bg-navy/10" />
-            </div>
-          ))}
-        </div>
-
-        {/* Buscador de empresas */}
-        <div className="mt-12 h-7 w-72 max-w-full rounded bg-navy/10" />
-        <div className="mt-4 h-12 w-full max-w-xl rounded-[var(--radius-card)] bg-navy/10" />
-
-        {/* Tabla */}
-        <div className="mt-8 overflow-hidden rounded-[var(--radius-card)] border border-navy/10 bg-white">
-          <div className="divide-y divide-navy/[0.06]">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-5 py-3.5">
-                <div className="h-4 w-16 rounded bg-navy/10" />
-                <div className="h-4 w-48 rounded bg-navy/10" />
-              </div>
-            ))}
+    <div className="flex h-full flex-col px-6 py-6 lg:px-8">
+      <div className="flex shrink-0 gap-2 pb-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="min-w-[130px] shrink-0 space-y-1.5 rounded-xl border border-navy/10 bg-white px-4 py-2.5"
+          >
+            <div className="h-2.5 w-14 rounded bg-navy/10" />
+            <div className="h-3.5 w-16 rounded bg-navy/10" />
           </div>
-        </div>
+        ))}
+      </div>
+      <div className="grid min-h-0 flex-1 gap-5 lg:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-[72vh] animate-pulse rounded-[var(--radius-card)] border border-navy/10 bg-white lg:h-full"
+          >
+            <div className="border-b border-navy/10 px-5 py-4">
+              <div className="h-6 w-32 rounded bg-navy/10" />
+            </div>
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 6 }).map((_, j) => (
+                <div key={j} className="h-12 w-full rounded-xl bg-navy/10" />
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

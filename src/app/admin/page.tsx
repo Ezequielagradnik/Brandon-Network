@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import PageHeader from "@/components/PageHeader";
 import AdminStats from "@/components/AdminStats";
 import AdminSkeleton from "@/components/AdminSkeleton";
+import UsageChart from "@/components/UsageChart";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getT, getLang } from "@/lib/lang";
 import type { Dict, Lang } from "@/lib/i18n";
@@ -17,13 +18,34 @@ type Row = {
   active: boolean;
 };
 
+const DAYS = 14;
+
 async function loadAdminData() {
   const admin = createAdminClient();
 
-  const [{ data: profiles }, authRes] = await Promise.all([
+  const chatsSince = new Date();
+  chatsSince.setHours(0, 0, 0, 0);
+  chatsSince.setDate(chatsSince.getDate() - (DAYS - 1));
+
+  const [{ data: profiles }, authRes, { data: chatMsgs }] = await Promise.all([
     admin.from("profiles").select("id, full_name, email, role"),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+    admin
+      .from("support_messages")
+      .select("created_at")
+      .gte("created_at", chatsSince.toISOString()),
   ]);
+
+  // Mensajes por día (últimos DAYS días)
+  const buckets: { dayStart: number; count: number }[] = [];
+  for (let i = 0; i < DAYS; i++) {
+    buckets.push({ dayStart: chatsSince.getTime() + i * 86400000, count: 0 });
+  }
+  for (const m of chatMsgs ?? []) {
+    const ts = Date.parse(m.created_at);
+    const idx = Math.floor((ts - chatsSince.getTime()) / 86400000);
+    if (idx >= 0 && idx < DAYS) buckets[idx].count++;
+  }
 
   const authMap = new Map<
     string,
@@ -72,7 +94,11 @@ async function loadAdminData() {
   const total = rows.length;
   const activeUsers = rows.filter((r) => r.active).length;
 
-  return { rows, values: [activeUsers, loginsToday, total, newThisMonth] };
+  return {
+    rows,
+    values: [activeUsers, loginsToday, total, newThisMonth],
+    buckets,
+  };
 }
 
 export default async function AdminPage() {
@@ -95,12 +121,21 @@ export default async function AdminPage() {
 
 async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
   const locale = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-AR";
-  const { rows, values } = await loadAdminData();
+  const { rows, values, buckets } = await loadAdminData();
 
   const metrics = values.map((v, i) => ({
     label: t.admin.metrics[i] ?? "",
     value: v.toLocaleString(locale),
   }));
+
+  const points = buckets.map((b) => ({
+    label: new Date(b.dayStart).toLocaleDateString(locale, {
+      day: "numeric",
+      month: "numeric",
+    }),
+    count: b.count,
+  }));
+  const chatsToday = buckets[buckets.length - 1]?.count ?? 0;
 
   const fmtLast = (ts: number | null) =>
     ts
@@ -115,6 +150,16 @@ async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
     <>
       <div className="mt-8">
         <AdminStats metrics={metrics} />
+      </div>
+
+      <div className="mt-6">
+        <UsageChart
+          points={points}
+          title={t.admin.activityTitle}
+          subtitle={t.admin.chatsPerDay + " · " + t.admin.last14}
+          todayLabel={t.admin.chatsToday}
+          todayCount={chatsToday}
+        />
       </div>
 
       <h2 className="mt-12 mb-4 font-display text-2xl text-navy">

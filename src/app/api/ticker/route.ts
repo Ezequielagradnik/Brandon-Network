@@ -3,7 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 export const maxDuration = 30;
 
 type Match = { symbol: string; description: string; type: string };
-type News = { title: string; publisher: string; link: string; time: number };
+type News = {
+  title: string;
+  publisher: string;
+  link: string;
+  time: number;
+  summary: string;
+};
 type Profile = {
   name: string;
   ticker: string;
@@ -96,11 +102,13 @@ async function detail(symbol: string, key: string) {
             source?: string;
             url?: string;
             datetime?: number;
+            summary?: string;
           }) => ({
             title: n.headline ?? "",
             publisher: n.source ?? "",
             link: n.url ?? "",
             time: n.datetime ?? 0,
+            summary: n.summary ?? "",
           }),
         )
         .filter((n: News) => n.title && n.link && n.time > 0)
