@@ -16,6 +16,7 @@ type Row = {
   role: string;
   lastSignIn: number | null;
   active: boolean;
+  credits: number;
 };
 
 const DAYS = 14;
@@ -28,7 +29,7 @@ async function loadAdminData() {
   chatsSince.setDate(chatsSince.getDate() - (DAYS - 1));
 
   const [{ data: profiles }, authRes, { data: chatMsgs }] = await Promise.all([
-    admin.from("profiles").select("id, full_name, email, role"),
+    admin.from("profiles").select("id, full_name, email, role, credits"),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin
       .from("support_messages")
@@ -86,6 +87,7 @@ async function loadAdminData() {
       role: p.role || "cliente",
       lastSignIn: last,
       active: last != null && last >= d30,
+      credits: typeof p.credits === "number" ? p.credits : 0,
     });
   }
 
@@ -163,6 +165,7 @@ async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
               <th className="px-6 py-4 font-medium">{t.admin.cols.user}</th>
               <th className="px-6 py-4 font-medium">{t.admin.cols.email}</th>
               <th className="px-6 py-4 font-medium">{t.admin.cols.role}</th>
+              <th className="px-6 py-4 font-medium">{t.admin.cols.credits}</th>
               <th className="hidden px-6 py-4 font-medium md:table-cell">
                 {t.admin.cols.lastLogin}
               </th>
@@ -188,6 +191,16 @@ async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
                     {u.role}
                   </span>
                 </td>
+                <td className="px-6 py-4">
+                  <span
+                    className={`tabular text-sm font-medium ${
+                      u.credits < 50 ? "text-down" : "text-navy/70"
+                    }`}
+                  >
+                    {u.credits}
+                  </span>
+                  <span className="text-xs text-navy/35"> / 500</span>
+                </td>
                 <td className="tabular hidden px-6 py-4 text-navy/55 md:table-cell">
                   {fmtLast(u.lastSignIn)}
                 </td>
@@ -206,7 +219,7 @@ async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-navy/50">
+                <td colSpan={6} className="px-6 py-8 text-center text-navy/50">
                   —
                 </td>
               </tr>
