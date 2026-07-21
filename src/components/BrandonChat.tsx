@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useLang } from "@/components/LangProvider";
+import MessageActions from "@/components/MessageActions";
 
 type Msg = {
   id: string;
@@ -16,6 +17,8 @@ export default function BrandonChat({ userId }: { userId: string }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editVal, setEditVal] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Historial
@@ -34,16 +37,24 @@ export default function BrandonChat({ userId }: { userId: string }) {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "support_messages",
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const m = payload.new as Msg;
-          setMessages((prev) =>
-            prev.some((x) => x.id === m.id) ? prev : [...prev, m],
-          );
+          if (payload.eventType === "INSERT") {
+            const m = payload.new as Msg;
+            setMessages((prev) =>
+              prev.some((x) => x.id === m.id) ? prev : [...prev, m],
+            );
+          } else if (payload.eventType === "UPDATE") {
+            const m = payload.new as Msg;
+            setMessages((prev) => prev.map((x) => (x.id === m.id ? m : x)));
+          } else if (payload.eventType === "DELETE") {
+            const old = payload.old as { id: string };
+            setMessages((prev) => prev.filter((x) => x.id !== old.id));
+          }
         },
       )
       .subscribe();
@@ -85,6 +96,35 @@ export default function BrandonChat({ userId }: { userId: string }) {
       /* queda el optimista */
     } finally {
       setSending(false);
+    }
+  }
+
+  async function saveEdit(id: string) {
+    const body = editVal.trim();
+    setEditingId(null);
+    if (!body) return;
+    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, body } : m)));
+    try {
+      await fetch("/api/support", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, body }),
+      });
+    } catch {
+      /* el realtime corrige si falla */
+    }
+  }
+
+  async function deleteMsg(id: string) {
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+    try {
+      await fetch("/api/support", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+    } catch {
+      /* el realtime corrige si falla */
     }
   }
 
@@ -132,29 +172,78 @@ export default function BrandonChat({ userId }: { userId: string }) {
             </div>
           </div>
         )}
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`flex ${m.sender === "client" ? "justify-end" : "justify-start"}`}
-          >
+        {messages.map((m) => {
+          const mine = m.sender === "client";
+          if (editingId === m.id) {
+            return (
+              <div key={m.id} className="flex justify-end">
+                <div className="w-full max-w-[80%] rounded-2xl border border-navy/15 bg-white p-2">
+                  <textarea
+                    autoFocus
+                    value={editVal}
+                    onChange={(e) => setEditVal(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        saveEdit(m.id);
+                      }
+                      if (e.key === "Escape") setEditingId(null);
+                    }}
+                    rows={2}
+                    className="w-full resize-none bg-transparent px-2 py-1 text-sm text-navy focus:outline-none"
+                  />
+                  <div className="mt-1 flex justify-end gap-2">
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="rounded-lg px-3 py-1 text-xs text-navy/60 hover:text-navy"
+                    >
+                      {t.common.cancel}
+                    </button>
+                    <button
+                      onClick={() => saveEdit(m.id)}
+                      className="rounded-lg bg-navy px-3 py-1 text-xs text-ivory hover:bg-navy-2"
+                    >
+                      {t.common.save}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          return (
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                m.sender === "client"
-                  ? "rounded-br-md bg-navy text-ivory"
-                  : "rounded-bl-md border border-navy/10 bg-white text-navy"
-              }`}
+              key={m.id}
+              className={`group flex items-center gap-1 ${mine ? "justify-end" : "justify-start"}`}
             >
-              <p className="whitespace-pre-wrap">{m.body}</p>
-              <p
-                className={`mt-1 text-right text-[10px] ${
-                  m.sender === "client" ? "text-ivory/50" : "text-navy/35"
+              {mine && (
+                <MessageActions
+                  align="left"
+                  onEdit={() => {
+                    setEditingId(m.id);
+                    setEditVal(m.body);
+                  }}
+                  onDelete={() => deleteMsg(m.id)}
+                />
+              )}
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  mine
+                    ? "rounded-br-md bg-navy text-ivory"
+                    : "rounded-bl-md border border-navy/10 bg-white text-navy"
                 }`}
               >
-                {hhmm(m.created_at)}
-              </p>
+                <p className="whitespace-pre-wrap">{m.body}</p>
+                <p
+                  className={`mt-1 text-right text-[10px] ${
+                    mine ? "text-ivory/50" : "text-navy/35"
+                  }`}
+                >
+                  {hhmm(m.created_at)}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Input */}

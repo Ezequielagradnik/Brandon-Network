@@ -130,3 +130,50 @@ export async function POST(req: Request) {
 
   return Response.json({ message: data });
 }
+
+// El admin puede editar cualquier mensaje.
+export async function PATCH(req: Request) {
+  if (!(await requireAdmin())) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  let id: string;
+  let body: string;
+  try {
+    const json = await req.json();
+    id = String(json.id ?? "");
+    body = String(json.body ?? "").trim();
+  } catch {
+    return new Response("JSON inválido", { status: 400 });
+  }
+  if (!id || !body) return new Response("Faltan datos", { status: 400 });
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("support_messages")
+    .update({ body })
+    .eq("id", id)
+    .select("id, sender, body, created_at")
+    .single();
+  if (error) return new Response(error.message, { status: 500 });
+  return Response.json({ message: data });
+}
+
+// El admin puede eliminar cualquier mensaje.
+export async function DELETE(req: Request) {
+  if (!(await requireAdmin())) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  let id: string;
+  try {
+    const json = await req.json();
+    id = String(json.id ?? "");
+  } catch {
+    return new Response("JSON inválido", { status: 400 });
+  }
+  if (!id) return new Response("Falta id", { status: 400 });
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("support_messages").delete().eq("id", id);
+  if (error) return new Response(error.message, { status: 500 });
+  return Response.json({ ok: true, id });
+}

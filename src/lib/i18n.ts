@@ -149,6 +149,7 @@ export const dict = {
       send: "Enviar",
       search: "Buscar cliente…",
     },
+    common: { edit: "Editar", delete: "Eliminar", save: "Guardar", cancel: "Cancelar", edited: "editado" },
     irs: {
       title: "Estado",
       accent: "fiscal",
@@ -323,6 +324,7 @@ export const dict = {
       send: "Send",
       search: "Search client…",
     },
+    common: { edit: "Edit", delete: "Delete", save: "Save", cancel: "Cancel", edited: "edited" },
     irs: {
       title: "Tax",
       accent: "standing",
@@ -497,6 +499,7 @@ export const dict = {
       send: "Enviar",
       search: "Buscar cliente…",
     },
+    common: { edit: "Editar", delete: "Excluir", save: "Salvar", cancel: "Cancelar", edited: "editado" },
     irs: {
       title: "Situação",
       accent: "fiscal",

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useLang } from "@/components/LangProvider";
+import MessageActions from "@/components/MessageActions";
 
 type Conversation = {
   userId: string;
@@ -37,6 +38,8 @@ export default function AdminChatsPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [query, setQuery] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editVal, setEditVal] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<string | null>(null);
 
@@ -71,14 +74,22 @@ export default function AdminChatsPage() {
       .channel("support:admin")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "support_messages" },
+        { event: "*", schema: "public", table: "support_messages" },
         (payload) => {
-          const m = payload.new as Msg & { user_id: string };
           loadConvos();
-          if (m.user_id === selectedRef.current) {
+          const row = (payload.new ?? payload.old) as Msg & { user_id?: string };
+          if (row?.user_id && row.user_id !== selectedRef.current) return;
+          if (payload.eventType === "INSERT") {
+            const m = payload.new as Msg;
             setThread((prev) =>
               prev.some((x) => x.id === m.id) ? prev : [...prev, m],
             );
+          } else if (payload.eventType === "UPDATE") {
+            const m = payload.new as Msg;
+            setThread((prev) => prev.map((x) => (x.id === m.id ? m : x)));
+          } else if (payload.eventType === "DELETE") {
+            const old = payload.old as { id: string };
+            setThread((prev) => prev.filter((x) => x.id !== old.id));
           }
         },
       )
@@ -122,6 +133,37 @@ export default function AdminChatsPage() {
       /* queda el optimista */
     } finally {
       setSending(false);
+    }
+  }
+
+  async function saveEdit(id: string) {
+    const body = editVal.trim();
+    setEditingId(null);
+    if (!body) return;
+    setThread((prev) => prev.map((m) => (m.id === id ? { ...m, body } : m)));
+    try {
+      await fetch("/api/support/inbox", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, body }),
+      });
+      loadConvos();
+    } catch {
+      /* el realtime corrige si falla */
+    }
+  }
+
+  async function deleteMsg(id: string) {
+    setThread((prev) => prev.filter((m) => m.id !== id));
+    try {
+      await fetch("/api/support/inbox", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      loadConvos();
+    } catch {
+      /* el realtime corrige si falla */
     }
   }
 
@@ -278,29 +320,91 @@ export default function AdminChatsPage() {
 
             {/* Mensajes */}
             <div ref={scrollRef} className="flex-1 space-y-2.5 overflow-y-auto px-5 py-5">
-              {thread.map((m) => (
-                <div
-                  key={m.id}
-                  className={`flex ${m.sender === "brandon" ? "justify-end" : "justify-start"}`}
-                >
+              {thread.map((m) => {
+                const out = m.sender === "brandon";
+                if (editingId === m.id) {
+                  return (
+                    <div
+                      key={m.id}
+                      className={`flex ${out ? "justify-end" : "justify-start"}`}
+                    >
+                      <div className="w-full max-w-[75%] rounded-2xl border border-navy/15 bg-white p-2">
+                        <textarea
+                          autoFocus
+                          value={editVal}
+                          onChange={(e) => setEditVal(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              saveEdit(m.id);
+                            }
+                            if (e.key === "Escape") setEditingId(null);
+                          }}
+                          rows={2}
+                          className="w-full resize-none bg-transparent px-2 py-1 text-sm text-navy focus:outline-none"
+                        />
+                        <div className="mt-1 flex justify-end gap-2">
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="rounded-lg px-3 py-1 text-xs text-navy/60 hover:text-navy"
+                          >
+                            {t.common.cancel}
+                          </button>
+                          <button
+                            onClick={() => saveEdit(m.id)}
+                            className="rounded-lg bg-navy px-3 py-1 text-xs text-ivory hover:bg-navy-2"
+                          >
+                            {t.common.save}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
                   <div
-                    className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
-                      m.sender === "brandon"
-                        ? "rounded-br-md bg-navy text-ivory"
-                        : "rounded-bl-md border border-navy/10 bg-white text-navy"
-                    }`}
+                    key={m.id}
+                    className={`group flex items-center gap-1 ${out ? "justify-end" : "justify-start"}`}
                   >
-                    <p className="whitespace-pre-wrap">{m.body}</p>
-                    <p
-                      className={`mt-1 text-right text-[10px] ${
-                        m.sender === "brandon" ? "text-ivory/50" : "text-navy/35"
+                    {out && (
+                      <MessageActions
+                        align="left"
+                        onEdit={() => {
+                          setEditingId(m.id);
+                          setEditVal(m.body);
+                        }}
+                        onDelete={() => deleteMsg(m.id)}
+                      />
+                    )}
+                    <div
+                      className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
+                        out
+                          ? "rounded-br-md bg-navy text-ivory"
+                          : "rounded-bl-md border border-navy/10 bg-white text-navy"
                       }`}
                     >
-                      {hhmm(m.created_at)}
-                    </p>
+                      <p className="whitespace-pre-wrap">{m.body}</p>
+                      <p
+                        className={`mt-1 text-right text-[10px] ${
+                          out ? "text-ivory/50" : "text-navy/35"
+                        }`}
+                      >
+                        {hhmm(m.created_at)}
+                      </p>
+                    </div>
+                    {!out && (
+                      <MessageActions
+                        align="right"
+                        onEdit={() => {
+                          setEditingId(m.id);
+                          setEditVal(m.body);
+                        }}
+                        onDelete={() => deleteMsg(m.id)}
+                      />
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Responder */}
