@@ -29,6 +29,7 @@ function Assistant() {
   const [followups, setFollowups] = useState<string[]>([]);
   const [credits, setCredits] = useState<number | null>(null);
   const [name, setName] = useState("");
+  const [salute, setSalute] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const convIdRef = useRef<string | null>(cid);
   const skipLoad = useRef(false);
@@ -74,6 +75,18 @@ function Assistant() {
       behavior: "smooth",
     });
   }, [messages]);
+
+  // Saludo según la hora (se calcula en el cliente para no romper la hidratación)
+  useEffect(() => {
+    const h = new Date().getHours();
+    setSalute(
+      h >= 6 && h < 12
+        ? t.asistente.goodMorning
+        : h < 20
+          ? t.asistente.goodAfternoon
+          : t.asistente.goodEvening,
+    );
+  }, [t]);
 
   // Créditos
   useEffect(() => {
@@ -286,10 +299,10 @@ function Assistant() {
             </span>
             <div>
               <p className="font-display text-3xl text-navy sm:text-4xl">
-                {name ? `${name}, ${t.asistente.greeting}` : t.asistente.greeting}
+                {salute ? (name ? `${salute}, ${name}` : salute) : t.asistente.greeting}
               </p>
               <p className="mx-auto mt-2 max-w-sm text-sm text-navy/50">
-                {t.asistente.subtitle}
+                {salute ? t.asistente.greeting : t.asistente.subtitle}
               </p>
             </div>
           </div>
