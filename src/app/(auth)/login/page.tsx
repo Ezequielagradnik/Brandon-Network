@@ -1,5 +1,6 @@
 import Image from "next/image";
 import GoogleButton from "@/components/GoogleButton";
+import EmailPasswordAuth from "@/components/EmailPasswordAuth";
 
 export default function LoginPage() {
   return (
@@ -26,8 +27,16 @@ export default function LoginPage() {
           <span className="font-display italic text-ivory">legado</span>.
         </p>
 
-        <div className="mt-10 w-full">
+        <div className="mt-10 w-full space-y-5">
           <GoogleButton />
+
+          <div className="flex items-center gap-3 text-[11px] uppercase tracking-wide text-text-muted/50">
+            <span className="h-px flex-1 bg-white/10" />
+            o
+            <span className="h-px flex-1 bg-white/10" />
+          </div>
+
+          <EmailPasswordAuth dark />
         </div>
 
         <p className="mt-8 text-center text-xs leading-relaxed text-text-muted/70">

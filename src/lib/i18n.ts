@@ -86,7 +86,7 @@ export const dict = {
         cancel: "Ahora no",
       },
     },
-    login: { phrasePre: "Preservando tu", phraseAccent: "legado", note: "Acceso exclusivo para clientes y administradores de Brandon Network.", google: "Continuar con Google", connecting: "Conectando…" },
+    login: { phrasePre: "Preservando tu", phraseAccent: "legado", note: "Acceso exclusivo para clientes y administradores de Brandon Network.", google: "Continuar con Google", connecting: "Conectando…", email: "Email", password: "Contraseña", name: "Nombre", signIn: "Iniciar sesión", signUp: "Crear cuenta", toSignUp: "¿No tienes cuenta? Crear una", toSignIn: "¿Ya tienes cuenta? Iniciar sesión", or: "o", checkEmail: "Te enviamos un correo para confirmar tu cuenta.", authError: "No se pudo completar. Revisa los datos e intenta de nuevo." },
     sidebar: { asistente: "Asistente", noticias: "Noticias", empresas: "Empresas", brandon: "Chat con Brandon", mensajes: "Mensajes", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Cerrar sesión", expand: "Expandir", collapse: "Colapsar", newChat: "Nuevo chat", chats: "Tus chats", loadMore: "Cargar más", rename: "Renombrar", delete: "Eliminar", deleteConfirm: "¿Eliminar esta conversación?", deleteHint: "Esta acción no se puede deshacer.", cancel: "Cancelar", today: "Hoy", yesterday: "Ayer", last30: "Últimos 30 días", older: "Anteriores" },
     asistente: {
       title: "Tu asistente de",
@@ -281,7 +281,7 @@ export const dict = {
         cancel: "Not now",
       },
     },
-    login: { phrasePre: "Preserving your", phraseAccent: "legacy", note: "Exclusive access for Brandon Network clients and administrators.", google: "Continue with Google", connecting: "Connecting…" },
+    login: { phrasePre: "Preserving your", phraseAccent: "legacy", note: "Exclusive access for Brandon Network clients and administrators.", google: "Continue with Google", connecting: "Connecting…", email: "Email", password: "Password", name: "Name", signIn: "Sign in", signUp: "Create account", toSignUp: "No account? Create one", toSignIn: "Already have an account? Sign in", or: "or", checkEmail: "We sent you an email to confirm your account.", authError: "Could not complete. Check your details and try again." },
     sidebar: { asistente: "Assistant", noticias: "News", empresas: "Companies", brandon: "Chat with Brandon", mensajes: "Messages", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Sign out", expand: "Expand", collapse: "Collapse", newChat: "New chat", chats: "Your chats", loadMore: "Load more", rename: "Rename", delete: "Delete", deleteConfirm: "Delete this conversation?", deleteHint: "This action can't be undone.", cancel: "Cancel", today: "Today", yesterday: "Yesterday", last30: "Previous 30 days", older: "Older" },
     asistente: {
       title: "Your AI",
@@ -476,7 +476,7 @@ export const dict = {
         cancel: "Agora não",
       },
     },
-    login: { phrasePre: "Preservando o seu", phraseAccent: "legado", note: "Acesso exclusivo para clientes e administradores da Brandon Network.", google: "Continuar com Google", connecting: "Conectando…" },
+    login: { phrasePre: "Preservando o seu", phraseAccent: "legado", note: "Acesso exclusivo para clientes e administradores da Brandon Network.", google: "Continuar com Google", connecting: "Conectando…", email: "Email", password: "Senha", name: "Nome", signIn: "Entrar", signUp: "Criar conta", toSignUp: "Não tem conta? Criar uma", toSignIn: "Já tem conta? Entrar", or: "ou", checkEmail: "Enviamos um e-mail para confirmar sua conta.", authError: "Não foi possível concluir. Confira os dados e tente novamente." },
     sidebar: { asistente: "Assistente", noticias: "Notícias", empresas: "Empresas", brandon: "Chat com a Brandon", mensajes: "Mensagens", irs: "IRS", videos: "Vídeos", admin: "Admin", logout: "Sair", expand: "Expandir", collapse: "Recolher", newChat: "Novo chat", chats: "Suas conversas", loadMore: "Carregar mais", rename: "Renomear", delete: "Excluir", deleteConfirm: "Excluir esta conversa?", deleteHint: "Esta ação não pode ser desfeita.", cancel: "Cancelar", today: "Hoje", yesterday: "Ontem", last30: "Últimos 30 dias", older: "Anteriores" },
     asistente: {
       title: "Seu assistente de",
