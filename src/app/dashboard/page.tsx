@@ -28,6 +28,7 @@ function Assistant() {
   const [loading, setLoading] = useState(false);
   const [followups, setFollowups] = useState<string[]>([]);
   const [credits, setCredits] = useState<number | null>(null);
+  const [name, setName] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const convIdRef = useRef<string | null>(cid);
   const skipLoad = useRef(false);
@@ -78,7 +79,11 @@ function Assistant() {
   useEffect(() => {
     fetch("/api/credits", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && setCredits(d.credits))
+      .then((d) => {
+        if (!d) return;
+        setCredits(d.credits);
+        if (d.name) setName(d.name);
+      })
       .catch(() => {});
   }, []);
 
@@ -281,7 +286,7 @@ function Assistant() {
             </span>
             <div>
               <p className="font-display text-3xl text-navy sm:text-4xl">
-                {t.asistente.greeting}
+                {name ? `${name}, ${t.asistente.greeting}` : t.asistente.greeting}
               </p>
               <p className="mx-auto mt-2 max-w-sm text-sm text-navy/50">
                 {t.asistente.subtitle}

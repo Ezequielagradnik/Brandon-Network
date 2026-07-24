@@ -11,13 +11,17 @@ export async function GET() {
 
   const { data } = await supabase
     .from("profiles")
-    .select("credits")
+    .select("credits, full_name")
     .eq("id", user.id)
     .single();
+
+  const fullName = data?.full_name || user.email?.split("@")[0] || "";
+  const firstName = fullName.trim().split(/\s+/)[0] ?? "";
 
   return Response.json({
     credits: data?.credits ?? 0,
     cost: 50,
     total: 500,
+    name: firstName,
   });
 }
