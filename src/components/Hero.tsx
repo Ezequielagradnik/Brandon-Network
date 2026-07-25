@@ -63,6 +63,13 @@ export default function Hero() {
     return () => clearInterval(interval);
   }, [prompts.length]);
 
+  // Permite abrir el gate desde otras secciones (ej. el CTA de cierre)
+  useEffect(() => {
+    const open = () => setGateOpen(true);
+    window.addEventListener("bn-open-gate", open);
+    return () => window.removeEventListener("bn-open-gate", open);
+  }, []);
+
   // Cierra el modal con Esc
   useEffect(() => {
     if (!gateOpen) return;

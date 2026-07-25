@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { useLang } from "@/components/LangProvider";
 
@@ -27,15 +26,15 @@ export default function LandingCTA() {
           {t.about.ctaTitle}
         </h2>
         <p className="mt-4 text-base text-text-muted">{t.about.ctaLead}</p>
-        <Link
-          href="/login"
+        <button
+          onClick={() => window.dispatchEvent(new Event("bn-open-gate"))}
           className="mt-9 inline-flex items-center gap-2 rounded-full bg-gold px-8 py-3.5 text-sm font-medium text-navy shadow-[0_16px_40px_-16px_rgba(194,161,91,0.6)] transition-transform hover:scale-[1.03]"
         >
           {t.about.ctaBtn}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
-        </Link>
+        </button>
       </motion.div>
     </section>
   );

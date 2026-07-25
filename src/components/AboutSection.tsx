@@ -14,54 +14,109 @@ const ICONS = [
 ];
 
 const item = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE } },
 };
 
-function CardShell({
-  index,
-  icon,
-  title,
-  desc,
-  className = "",
-  children,
-}: {
-  index: number;
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-  className?: string;
-  children?: React.ReactNode;
-}) {
+// Escribe el texto en loop, tipo demo en vivo
+function Typewriter({ text }: { text: string }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    let i = 0;
+    let hold = 0;
+    let holding = false;
+    const id = setInterval(() => {
+      if (holding) {
+        hold++;
+        if (hold > 55) {
+          holding = false;
+          hold = 0;
+          i = 0;
+          setN(0);
+        }
+        return;
+      }
+      i++;
+      setN(i);
+      if (i >= text.length) holding = true;
+    }, 42);
+    return () => clearInterval(id);
+  }, [text]);
+  return (
+    <>
+      {text.slice(0, n)}
+      <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-navy/50 align-middle" />
+    </>
+  );
+}
+
+function AppPreview() {
+  const { t } = useLang();
+  const a = t.about;
   return (
     <motion.div
-      variants={item}
-      whileHover={{ y: -6 }}
-      transition={{ type: "spring", stiffness: 300, damping: 22 }}
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border border-navy/10 bg-white p-7 shadow-[0_12px_50px_-28px_rgba(11,27,46,0.4)] ${className}`}
+      animate={{ y: [0, -12, 0] }}
+      transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      className="relative"
     >
-      {/* brillo dorado en hover */}
+      {/* glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        className="pointer-events-none absolute -inset-6 rounded-[2rem] opacity-60 blur-2xl"
         style={{
           background:
-            "radial-gradient(600px circle at 50% 0%, rgba(194,161,91,0.10), transparent 60%)",
+            "radial-gradient(500px circle at 70% 20%, rgba(194,161,91,0.18), transparent 60%)",
         }}
       />
-      <div className="relative flex items-center justify-between">
-        <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-gold/25 bg-gold/10 text-gold transition-colors group-hover:bg-gold/15">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            {icon}
-          </svg>
-        </span>
-        <span className="tabular font-display text-2xl text-navy/15">
-          0{index}
-        </span>
+      <div className="relative overflow-hidden rounded-2xl border border-navy/10 bg-white shadow-[0_40px_90px_-40px_rgba(11,27,46,0.5)]">
+        {/* barra de navegador */}
+        <div className="flex items-center gap-2 border-b border-navy/10 bg-ivory/70 px-4 py-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-down/60" />
+          <span className="h-2.5 w-2.5 rounded-full bg-gold/60" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--up)]/60" />
+          <span className="ml-3 flex-1 truncate rounded-md bg-white px-3 py-1 text-[11px] text-navy/40">
+            brandonnetwork.com/dashboard
+          </span>
+        </div>
+
+        {/* contenido: asistente */}
+        <div className="space-y-4 p-6">
+          <div>
+            <p className="font-display text-xl text-navy">
+              Tu asistente de <span className="italic text-gold">IA</span>
+            </p>
+          </div>
+
+          <div className="flex justify-end">
+            <span className="max-w-[85%] rounded-2xl rounded-br-md bg-navy px-4 py-2.5 text-sm leading-relaxed text-ivory">
+              {a.demoQ}
+            </span>
+          </div>
+
+          <div className="space-y-3 text-sm leading-relaxed text-navy/80">
+            <p>
+              <Typewriter text={a.demoA} />
+            </p>
+            <div className="overflow-hidden rounded-xl border border-navy/10">
+              <div className="grid grid-cols-2 bg-navy/[0.04] text-[11px] font-medium text-navy/60">
+                <span className="px-3 py-2">Estructura</span>
+                <span className="px-3 py-2">Ideal para</span>
+              </div>
+              <div className="grid grid-cols-2 border-t border-navy/[0.06] text-xs text-navy/70">
+                <span className="px-3 py-2">ILIT</span>
+                <span className="px-3 py-2">Seguro de vida</span>
+              </div>
+              <div className="grid grid-cols-2 border-t border-navy/[0.06] text-xs text-navy/70">
+                <span className="px-3 py-2">Foreign Trust</span>
+                <span className="px-3 py-2">Herencia</span>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-2.5 py-1 text-[11px] font-medium text-navy">
+              <span>💡</span> Tip Brandon Network
+            </span>
+          </div>
+        </div>
       </div>
-      <h3 className="relative mt-5 font-display text-xl text-navy">{title}</h3>
-      <p className="relative mt-2 text-sm leading-relaxed text-navy/55">{desc}</p>
-      {children}
     </motion.div>
   );
 }
@@ -97,11 +152,9 @@ function Stat({ value, label }: { value: string; label: string }) {
 export default function AboutSection() {
   const { t } = useLang();
   const a = t.about;
-  const f = a.features;
 
   return (
     <section className="relative overflow-hidden bg-ivory px-6 py-24 sm:py-32">
-      {/* Aurora animada de fondo */}
       <motion.div
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-1/3 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full opacity-[0.08] blur-3xl"
@@ -131,114 +184,47 @@ export default function AboutSection() {
           <p className="mt-5 text-lg leading-relaxed text-navy/60">{a.lead}</p>
         </motion.div>
 
-        {/* Bento */}
-        <motion.div
-          variants={{ show: { transition: { staggerChildren: 0.12 } } }}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-60px" }}
-          className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-6"
-        >
-          {/* Asistente (destacada, con mock de chat) */}
-          <CardShell
-            index={1}
-            icon={ICONS[0]}
-            title={f[0].title}
-            desc={f[0].desc}
-            className="lg:col-span-4"
+        {/* Dos columnas: pilares + preview */}
+        <div className="mt-16 grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <motion.div
+            variants={{ show: { transition: { staggerChildren: 0.12 } } }}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-60px" }}
+            className="space-y-7"
           >
-            <div className="relative mt-6 space-y-2 rounded-xl border border-navy/10 bg-ivory/70 p-4">
-              <div className="flex justify-end">
-                <span className="max-w-[80%] rounded-2xl rounded-br-md bg-navy px-3.5 py-2 text-xs leading-relaxed text-ivory">
-                  {a.demoQ}
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed text-navy/70">{a.demoA}</p>
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-2.5 py-1 text-[11px] font-medium text-navy">
-                <span>💡</span> Tip Brandon Network
-              </span>
-            </div>
-          </CardShell>
-
-          {/* Mercado (con ticker mock) */}
-          <CardShell
-            index={2}
-            icon={ICONS[1]}
-            title={f[1].title}
-            desc={f[1].desc}
-            className="lg:col-span-2"
-          >
-            <div className="mt-6 flex items-center justify-between rounded-xl border border-navy/10 bg-ivory/70 px-4 py-3">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy font-display text-xs text-ivory">
-                  A
+            {a.features.map((f, i) => (
+              <motion.div key={i} variants={item} className="flex gap-4">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/25 bg-gold/10 text-gold">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    {ICONS[i]}
+                  </svg>
                 </span>
                 <div>
-                  <p className="text-xs font-semibold text-navy">AAPL</p>
-                  <p className="text-[10px] text-navy/45">Apple Inc</p>
+                  <h3 className="font-display text-xl text-navy">{f.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-navy/55">{f.desc}</p>
                 </div>
-              </div>
-              <div className="text-right">
-                <p className="tabular text-sm font-medium text-navy">$212.40</p>
-                <p className="tabular text-[11px] font-medium text-[var(--up)]">
-                  ▲ 1.20%
-                </p>
-              </div>
-            </div>
-          </CardShell>
+              </motion.div>
+            ))}
+          </motion.div>
 
-          {/* Chat con Brandon (mock WhatsApp) */}
-          <CardShell
-            index={3}
-            icon={ICONS[2]}
-            title={f[2].title}
-            desc={f[2].desc}
-            className="lg:col-span-3"
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: EASE }}
           >
-            <div className="mt-6 space-y-2 rounded-xl border border-navy/10 bg-ivory/70 p-4">
-              <div className="flex justify-start">
-                <span className="max-w-[85%] rounded-2xl rounded-bl-md border border-navy/10 bg-white px-3.5 py-2 text-xs leading-relaxed text-navy">
-                  {a.waClient}
-                </span>
-              </div>
-              <div className="flex justify-end">
-                <span className="max-w-[85%] rounded-2xl rounded-br-md bg-navy px-3.5 py-2 text-xs leading-relaxed text-ivory">
-                  {a.waBrandon}
-                </span>
-              </div>
-            </div>
-          </CardShell>
+            <AppPreview />
+          </motion.div>
+        </div>
 
-          {/* Privacidad */}
-          <CardShell
-            index={4}
-            icon={ICONS[3]}
-            title={f[3].title}
-            desc={f[3].desc}
-            className="lg:col-span-3"
-          >
-            <div className="mt-6 flex items-center gap-3 rounded-xl border border-navy/10 bg-ivory/70 px-4 py-3.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy text-gold">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="4" y="11" width="16" height="9" rx="2" />
-                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-                </svg>
-              </span>
-              <div className="flex-1 space-y-2">
-                <div className="h-2 w-3/4 rounded-full bg-navy/10" />
-                <div className="h-2 w-1/2 rounded-full bg-navy/10" />
-              </div>
-            </div>
-          </CardShell>
-        </motion.div>
-
-        {/* Franja de confianza con números que cuentan */}
+        {/* Franja de confianza */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-x-16 gap-y-6 border-t border-navy/10 pt-10 text-center"
+          className="mt-20 flex flex-wrap items-center justify-center gap-x-16 gap-y-6 border-t border-navy/10 pt-10 text-center"
         >
           {a.stats.map((s, i) => (
             <Stat key={i} value={s.value} label={s.label} />
