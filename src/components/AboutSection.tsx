@@ -175,10 +175,7 @@ export default function AboutSection() {
           transition={{ duration: 0.6, ease: EASE }}
           className="max-w-2xl"
         >
-          <span className="text-xs font-medium uppercase tracking-[0.18em] text-gold">
-            {a.eyebrow}
-          </span>
-          <h2 className="mt-4 font-display text-4xl leading-tight text-navy sm:text-5xl">
+          <h2 className="font-display text-4xl leading-tight text-navy sm:text-5xl">
             {a.title} <span className="italic text-gold">{a.titleAccent}</span>
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-navy/60">{a.lead}</p>
