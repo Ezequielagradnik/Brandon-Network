@@ -92,6 +92,8 @@ export const dict = {
       title: "Tu patrimonio en Estados Unidos,",
       titleAccent: "en un solo lugar",
       lead: "Una plataforma privada para familias y empresas de Latinoamérica con intereses en EE. UU. Respuestas, mercado y acompañamiento, todo junto.",
+      demoQ: "¿Cómo tributa un trust en EE. UU.?",
+      demoA: "Depende del tipo de trust y de la residencia del beneficiario.",
       features: [
         { title: "Asistente de IA especializado", desc: "Respuestas sobre finanzas, impuestos y temas legales de EE. UU. (IRS, W-8BEN, trusts, estructuras), con fuentes citadas y en español, inglés o portugués." },
         { title: "El mercado, a mano", desc: "Cotizaciones, empresas del Nasdaq con sus novedades y noticias del mercado seleccionadas." },
@@ -304,6 +306,8 @@ export const dict = {
       title: "Your U.S. wealth,",
       titleAccent: "all in one place",
       lead: "A private platform for Latin American families and businesses with interests in the United States. Answers, markets and support, together.",
+      demoQ: "How is a U.S. trust taxed?",
+      demoA: "It depends on the type of trust and the beneficiary's residence.",
       features: [
         { title: "Specialized AI assistant", desc: "Answers on U.S. finance, tax and legal matters (IRS, W-8BEN, trusts, structures), with cited sources, in Spanish, English or Portuguese." },
         { title: "Markets at hand", desc: "Quotes, Nasdaq companies with their latest news, and curated market news." },
@@ -516,6 +520,8 @@ export const dict = {
       title: "Seu patrimônio nos EUA,",
       titleAccent: "tudo em um só lugar",
       lead: "Uma plataforma privada para famílias e empresas da América Latina com interesses nos Estados Unidos. Respostas, mercado e acompanhamento, juntos.",
+      demoQ: "Como um trust é tributado nos EUA?",
+      demoA: "Depende do tipo de trust e da residência do beneficiário.",
       features: [
         { title: "Assistente de IA especializado", desc: "Respostas sobre finanças, impostos e questões jurídicas dos EUA (IRS, W-8BEN, trusts, estruturas), com fontes citadas, em espanhol, inglês ou português." },
         { title: "O mercado à mão", desc: "Cotações, empresas da Nasdaq com suas novidades e notícias de mercado selecionadas." },
