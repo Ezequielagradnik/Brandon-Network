@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useInView, animate } from "framer-motion";
 import { useLang } from "@/components/LangProvider";
+import CompanyLogo from "@/components/CompanyLogo";
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -92,35 +93,62 @@ const ROWS = [
   { s: "TSLA", n: "Tesla", p: "$248.10", c: "▼ 0.80%", up: false },
 ];
 
-function NoticiasMock({ label }: { label: string }) {
+function NoticiasMock({
+  label,
+  newsA,
+  newsB,
+}: {
+  label: string;
+  newsA: string;
+  newsB: string;
+}) {
+  const news = [
+    { src: "CNBC · 1 h", title: newsA },
+    { src: "Reuters · 3 h", title: newsB },
+  ];
   return (
     <div className="space-y-3">
       <p className="font-display text-lg text-navy">{label}</p>
-      {ROWS.map((r) => (
-        <div
-          key={r.s}
-          className="flex items-center justify-between rounded-xl border border-navy/10 bg-ivory/70 px-4 py-2.5"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy font-display text-xs text-ivory">
-              {r.s[0]}
-            </span>
-            <div>
-              <p className="text-xs font-semibold text-navy">{r.s}</p>
-              <p className="text-[10px] text-navy/45">{r.n}</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="tabular text-sm font-medium text-navy">{r.p}</p>
-            <p
-              className="tabular text-[11px] font-medium"
-              style={{ color: r.up ? "var(--up)" : "var(--down)" }}
-            >
-              {r.c}
+      <div className="grid grid-cols-5 gap-3">
+      {/* Noticias */}
+      <div className="col-span-2 space-y-2">
+        {news.map((nw, i) => (
+          <div key={i} className="rounded-xl border border-navy/10 bg-ivory/70 p-2.5">
+            <p className="text-[9px] font-medium text-navy/45">{nw.src}</p>
+            <p className="mt-1 text-[11px] font-medium leading-snug text-navy">
+              {nw.title}
             </p>
           </div>
+        ))}
+      </div>
+
+      {/* Cotizaciones (Activos) con logos reales */}
+      <div className="col-span-3 space-y-2">
+        {ROWS.map((r) => (
+          <div
+            key={r.s}
+            className="flex items-center justify-between rounded-xl border border-navy/10 bg-ivory/70 px-3 py-2"
+          >
+            <div className="flex min-w-0 items-center gap-2.5">
+              <CompanyLogo symbol={r.s} size={30} />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-navy">{r.s}</p>
+                <p className="truncate text-[10px] text-navy/45">{r.n}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="tabular text-sm font-medium text-navy">{r.p}</p>
+              <p
+                className="tabular text-[11px] font-medium"
+                style={{ color: r.up ? "var(--up)" : "var(--down)" }}
+              >
+                {r.c}
+              </p>
+            </div>
+          </div>
+        ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }
@@ -221,7 +249,13 @@ function AppPreview() {
               transition={{ duration: 0.35, ease: EASE }}
             >
               {tab === 0 && <AsistenteMock q={a.demoQ} ans={a.demoA} />}
-              {tab === 1 && <NoticiasMock label={a.marqueeLabel} />}
+              {tab === 1 && (
+                <NoticiasMock
+                  label={t.noticias.companies.marketInsights}
+                  newsA={a.newsA}
+                  newsB={a.newsB}
+                />
+              )}
               {tab === 2 && <BrandonMock q={a.waClient} ans={a.waBrandon} />}
             </motion.div>
           </AnimatePresence>
