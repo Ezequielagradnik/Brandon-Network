@@ -87,6 +87,23 @@ export const dict = {
       },
     },
     login: { phrasePre: "Preservando tu", phraseAccent: "legado", note: "Acceso exclusivo para clientes y administradores de Brandon Network.", google: "Continuar con Google", connecting: "Conectando…", email: "Email", password: "Contraseña", name: "Nombre", signIn: "Iniciar sesión", signUp: "Crear cuenta", toSignUp: "¿No tienes cuenta? Crear una", toSignIn: "¿Ya tienes cuenta? Iniciar sesión", or: "o", checkEmail: "Te enviamos un correo para confirmar tu cuenta.", authError: "No se pudo completar. Revisa los datos e intenta de nuevo." },
+    about: {
+      eyebrow: "La plataforma",
+      title: "Tu patrimonio en Estados Unidos,",
+      titleAccent: "en un solo lugar",
+      lead: "Una plataforma privada para familias y empresas de Latinoamérica con intereses en EE. UU. Respuestas, mercado y acompañamiento, todo junto.",
+      features: [
+        { title: "Asistente de IA especializado", desc: "Respuestas sobre finanzas, impuestos y temas legales de EE. UU. (IRS, W-8BEN, trusts, estructuras), con fuentes citadas y en español, inglés o portugués." },
+        { title: "El mercado, a mano", desc: "Cotizaciones, empresas del Nasdaq con sus novedades y noticias del mercado seleccionadas." },
+        { title: "Línea directa con Brandon", desc: "Un asesor del equipo responde dentro de la plataforma, sin llamadas ni correos." },
+        { title: "Privado y protegido", desc: "Cada cliente accede solo a su información. Datos protegidos y bajo control." },
+      ],
+      stats: [
+        { value: "60+", label: "años de trayectoria" },
+        { value: "3", label: "idiomas" },
+        { value: "Miami", label: "Coral Gables" },
+      ],
+    },
     sidebar: { asistente: "Asistente", noticias: "Noticias", empresas: "Empresas", brandon: "Chat con Brandon", mensajes: "Mensajes", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Cerrar sesión", expand: "Expandir", collapse: "Colapsar", newChat: "Nuevo chat", chats: "Tus chats", loadMore: "Cargar más", rename: "Renombrar", delete: "Eliminar", deleteConfirm: "¿Eliminar esta conversación?", deleteHint: "Esta acción no se puede deshacer.", cancel: "Cancelar", today: "Hoy", yesterday: "Ayer", last30: "Últimos 30 días", older: "Anteriores" },
     asistente: {
       title: "Tu asistente de",
@@ -282,6 +299,23 @@ export const dict = {
       },
     },
     login: { phrasePre: "Preserving your", phraseAccent: "legacy", note: "Exclusive access for Brandon Network clients and administrators.", google: "Continue with Google", connecting: "Connecting…", email: "Email", password: "Password", name: "Name", signIn: "Sign in", signUp: "Create account", toSignUp: "No account? Create one", toSignIn: "Already have an account? Sign in", or: "or", checkEmail: "We sent you an email to confirm your account.", authError: "Could not complete. Check your details and try again." },
+    about: {
+      eyebrow: "The platform",
+      title: "Your U.S. wealth,",
+      titleAccent: "all in one place",
+      lead: "A private platform for Latin American families and businesses with interests in the United States. Answers, markets and support, together.",
+      features: [
+        { title: "Specialized AI assistant", desc: "Answers on U.S. finance, tax and legal matters (IRS, W-8BEN, trusts, structures), with cited sources, in Spanish, English or Portuguese." },
+        { title: "Markets at hand", desc: "Quotes, Nasdaq companies with their latest news, and curated market news." },
+        { title: "Direct line to Brandon", desc: "An advisor from the team replies inside the platform, no calls or emails." },
+        { title: "Private and protected", desc: "Each client only sees their own information. Data protected and under control." },
+      ],
+      stats: [
+        { value: "60+", label: "years of experience" },
+        { value: "3", label: "languages" },
+        { value: "Miami", label: "Coral Gables" },
+      ],
+    },
     sidebar: { asistente: "Assistant", noticias: "News", empresas: "Companies", brandon: "Chat with Brandon", mensajes: "Messages", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Sign out", expand: "Expand", collapse: "Collapse", newChat: "New chat", chats: "Your chats", loadMore: "Load more", rename: "Rename", delete: "Delete", deleteConfirm: "Delete this conversation?", deleteHint: "This action can't be undone.", cancel: "Cancel", today: "Today", yesterday: "Yesterday", last30: "Previous 30 days", older: "Older" },
     asistente: {
       title: "Your AI",
@@ -477,6 +511,23 @@ export const dict = {
       },
     },
     login: { phrasePre: "Preservando o seu", phraseAccent: "legado", note: "Acesso exclusivo para clientes e administradores da Brandon Network.", google: "Continuar com Google", connecting: "Conectando…", email: "Email", password: "Senha", name: "Nome", signIn: "Entrar", signUp: "Criar conta", toSignUp: "Não tem conta? Criar uma", toSignIn: "Já tem conta? Entrar", or: "ou", checkEmail: "Enviamos um e-mail para confirmar sua conta.", authError: "Não foi possível concluir. Confira os dados e tente novamente." },
+    about: {
+      eyebrow: "A plataforma",
+      title: "Seu patrimônio nos EUA,",
+      titleAccent: "tudo em um só lugar",
+      lead: "Uma plataforma privada para famílias e empresas da América Latina com interesses nos Estados Unidos. Respostas, mercado e acompanhamento, juntos.",
+      features: [
+        { title: "Assistente de IA especializado", desc: "Respostas sobre finanças, impostos e questões jurídicas dos EUA (IRS, W-8BEN, trusts, estruturas), com fontes citadas, em espanhol, inglês ou português." },
+        { title: "O mercado à mão", desc: "Cotações, empresas da Nasdaq com suas novidades e notícias de mercado selecionadas." },
+        { title: "Linha direta com a Brandon", desc: "Um assessor da equipe responde dentro da plataforma, sem ligações nem e-mails." },
+        { title: "Privado e protegido", desc: "Cada cliente acessa apenas suas informações. Dados protegidos e sob controle." },
+      ],
+      stats: [
+        { value: "60+", label: "anos de trajetória" },
+        { value: "3", label: "idiomas" },
+        { value: "Miami", label: "Coral Gables" },
+      ],
+    },
     sidebar: { asistente: "Assistente", noticias: "Notícias", empresas: "Empresas", brandon: "Chat com a Brandon", mensajes: "Mensagens", irs: "IRS", videos: "Vídeos", admin: "Admin", logout: "Sair", expand: "Expandir", collapse: "Recolher", newChat: "Novo chat", chats: "Suas conversas", loadMore: "Carregar mais", rename: "Renomear", delete: "Excluir", deleteConfirm: "Excluir esta conversa?", deleteHint: "Esta ação não pode ser desfeita.", cancel: "Cancelar", today: "Hoje", yesterday: "Ontem", last30: "Últimos 30 dias", older: "Anteriores" },
     asistente: {
       title: "Seu assistente de",
