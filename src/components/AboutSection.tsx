@@ -71,9 +71,8 @@ function Stat({ value, label }: { value: string; label: string }) {
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const [display, setDisplay] = useState<string>(value);
 
-  const m = value.match(/^(\d+)(\D*)$/);
-
   useEffect(() => {
+    const m = value.match(/^(\d+)(\D*)$/);
     if (!m || !inView) return;
     const target = parseInt(m[1], 10);
     const suffix = m[2];
@@ -83,7 +82,7 @@ function Stat({ value, label }: { value: string; label: string }) {
       onUpdate: (v) => setDisplay(`${Math.round(v)}${suffix}`),
     });
     return () => controls.stop();
-  }, [inView, m]);
+  }, [inView, value]);
 
   return (
     <div>
