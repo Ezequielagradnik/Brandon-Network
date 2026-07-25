@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLang } from "@/components/LangProvider";
 import { createClient } from "@/lib/supabase/client";
 import SuggestionCarousel from "@/components/SuggestionCarousel";
@@ -294,8 +295,9 @@ export default function Hero() {
         </form>
       </div>
 
-      {/* Modal: iniciar sesión para usar el asistente */}
-      {gateOpen && (
+      {/* Modal: iniciar sesión para usar el asistente (portal al body para que quede fijo a la ventana) */}
+      {gateOpen &&
+        createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           role="dialog"
@@ -379,7 +381,8 @@ export default function Hero() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </section>
   );
