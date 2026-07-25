@@ -187,14 +187,27 @@ export default function AboutSection() {
             </div>
           </CardShell>
 
-          {/* Chat con Brandon */}
+          {/* Chat con Brandon (mock WhatsApp) */}
           <CardShell
             index={3}
             icon={ICONS[2]}
             title={f[2].title}
             desc={f[2].desc}
             className="lg:col-span-3"
-          />
+          >
+            <div className="mt-6 space-y-2 rounded-xl border border-navy/10 bg-ivory/70 p-4">
+              <div className="flex justify-start">
+                <span className="max-w-[85%] rounded-2xl rounded-bl-md border border-navy/10 bg-white px-3.5 py-2 text-xs leading-relaxed text-navy">
+                  {a.waClient}
+                </span>
+              </div>
+              <div className="flex justify-end">
+                <span className="max-w-[85%] rounded-2xl rounded-br-md bg-navy px-3.5 py-2 text-xs leading-relaxed text-ivory">
+                  {a.waBrandon}
+                </span>
+              </div>
+            </div>
+          </CardShell>
 
           {/* Privacidad */}
           <CardShell
@@ -203,7 +216,20 @@ export default function AboutSection() {
             title={f[3].title}
             desc={f[3].desc}
             className="lg:col-span-3"
-          />
+          >
+            <div className="mt-6 flex items-center gap-3 rounded-xl border border-navy/10 bg-ivory/70 px-4 py-3.5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy text-gold">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4" y="11" width="16" height="9" rx="2" />
+                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                </svg>
+              </span>
+              <div className="flex-1 space-y-2">
+                <div className="h-2 w-3/4 rounded-full bg-navy/10" />
+                <div className="h-2 w-1/2 rounded-full bg-navy/10" />
+              </div>
+            </div>
+          </CardShell>
         </motion.div>
 
         {/* Franja de confianza con números que cuentan */}
