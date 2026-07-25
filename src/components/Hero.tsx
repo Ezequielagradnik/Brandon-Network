@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useLang } from "@/components/LangProvider";
 import { createClient } from "@/lib/supabase/client";
 import SuggestionCarousel from "@/components/SuggestionCarousel";
+import EmailPasswordAuth from "@/components/EmailPasswordAuth";
 import { type Lang } from "@/lib/i18n";
 
 const NAVY = "#14224a";
@@ -349,18 +350,18 @@ export default function Hero() {
                 {busy ? t.login.connecting : t.login.google}
               </button>
 
-              {/* Registrarse (también vía Google) */}
-              <div className="flex items-center justify-center gap-1.5 text-[13px]">
-                <span style={{ color: `${NAVY}99` }}>{t.heroAI.gate.noAccount}</span>
-                <button
-                  onClick={signInGoogle}
-                  disabled={busy}
-                  className="font-semibold underline underline-offset-2 transition-opacity hover:opacity-70 disabled:opacity-60"
-                  style={{ color: NAVY }}
-                >
-                  {t.heroAI.gate.register}
-                </button>
+              {/* Separador */}
+              <div
+                className="my-1 flex items-center gap-3 text-[11px] uppercase tracking-wide"
+                style={{ color: `${NAVY}66` }}
+              >
+                <span className="h-px flex-1" style={{ background: `${NAVY}1a` }} />
+                {t.login.or}
+                <span className="h-px flex-1" style={{ background: `${NAVY}1a` }} />
               </div>
+
+              {/* Email y contraseña */}
+              <EmailPasswordAuth next="/dashboard" />
 
               <button
                 onClick={() => setGateOpen(false)}
