@@ -87,66 +87,91 @@ function AsistenteMock({ q, ans }: { q: string; ans: string }) {
   );
 }
 
-const ROWS = [
-  { s: "AAPL", n: "Apple", p: "$212.40", c: "▲ 1.20%", up: true },
-  { s: "NVDA", n: "NVIDIA", p: "$128.90", c: "▲ 2.34%", up: true },
-  { s: "TSLA", n: "Tesla", p: "$248.10", c: "▼ 0.80%", up: false },
+type LiveQuote = {
+  symbol: string;
+  name: string;
+  price: number | null;
+  changePct: number | null;
+};
+
+const FALLBACK: LiveQuote[] = [
+  { symbol: "AAPL", name: "Apple", price: 212.4, changePct: 1.2 },
+  { symbol: "NVDA", name: "NVIDIA", price: 128.9, changePct: 2.34 },
+  { symbol: "TSLA", name: "Tesla", price: 248.1, changePct: -0.8 },
 ];
+
+function fmtPrice(p: number) {
+  return `$${p.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
 
 function NoticiasMock({
   label,
   newsA,
   newsB,
+  quotes,
 }: {
   label: string;
   newsA: string;
   newsB: string;
+  quotes: LiveQuote[] | null;
 }) {
   const news = [
     { src: "CNBC · 1 h", title: newsA },
     { src: "Reuters · 3 h", title: newsB },
   ];
+  const rows = quotes && quotes.length ? quotes : FALLBACK;
+
   return (
     <div className="space-y-3">
       <p className="font-display text-lg text-navy">{label}</p>
       <div className="grid grid-cols-5 gap-3">
-      {/* Noticias */}
-      <div className="col-span-2 space-y-2">
-        {news.map((nw, i) => (
-          <div key={i} className="rounded-xl border border-navy/10 bg-ivory/70 p-2.5">
-            <p className="text-[9px] font-medium text-navy/45">{nw.src}</p>
-            <p className="mt-1 text-[11px] font-medium leading-snug text-navy">
-              {nw.title}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Cotizaciones (Activos) con logos reales */}
-      <div className="col-span-3 space-y-2">
-        {ROWS.map((r) => (
-          <div
-            key={r.s}
-            className="flex items-center justify-between rounded-xl border border-navy/10 bg-ivory/70 px-3 py-2"
-          >
-            <div className="flex min-w-0 items-center gap-2.5">
-              <CompanyLogo symbol={r.s} size={30} />
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-navy">{r.s}</p>
-                <p className="truncate text-[10px] text-navy/45">{r.n}</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="tabular text-sm font-medium text-navy">{r.p}</p>
-              <p
-                className="tabular text-[11px] font-medium"
-                style={{ color: r.up ? "var(--up)" : "var(--down)" }}
+        {/* Cotizaciones (Activos) con logos y precios reales, a la izquierda */}
+        <div className="col-span-3 space-y-2">
+          {rows.map((r) => {
+            const up = (r.changePct ?? 0) >= 0;
+            return (
+              <div
+                key={r.symbol}
+                className="flex items-center justify-between rounded-xl border border-navy/10 bg-ivory/70 px-3 py-2"
               >
-                {r.c}
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <CompanyLogo symbol={r.symbol} size={30} />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-navy">{r.symbol}</p>
+                    <p className="truncate text-[10px] text-navy/45">{r.name}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="tabular text-sm font-medium text-navy">
+                    {r.price != null ? fmtPrice(r.price) : "—"}
+                  </p>
+                  {r.changePct != null && (
+                    <p
+                      className="tabular text-[11px] font-medium"
+                      style={{ color: up ? "var(--up)" : "var(--down)" }}
+                    >
+                      {up ? "▲" : "▼"} {Math.abs(r.changePct).toFixed(2)}%
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Noticias, a la derecha */}
+        <div className="col-span-2 space-y-2">
+          {news.map((nw, i) => (
+            <div key={i} className="rounded-xl border border-navy/10 bg-ivory/70 p-2.5">
+              <p className="text-[9px] font-medium text-navy/45">{nw.src}</p>
+              <p className="mt-1 text-[11px] font-medium leading-snug text-navy">
+                {nw.title}
               </p>
             </div>
-          </div>
-        ))}
+          ))}
         </div>
       </div>
     </div>
@@ -184,6 +209,7 @@ function AppPreview() {
   const { t } = useLang();
   const a = t.about;
   const [tab, setTab] = useState(0);
+  const [quotes, setQuotes] = useState<LiveQuote[] | null>(null);
 
   const tabs = [
     { path: "/dashboard", label: t.sidebar.asistente },
@@ -194,6 +220,15 @@ function AppPreview() {
   useEffect(() => {
     const id = setInterval(() => setTab((x) => (x + 1) % 3), 4800);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/preview-quotes", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.quotes?.length) setQuotes(d.quotes);
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -254,6 +289,7 @@ function AppPreview() {
                   label={t.noticias.companies.marketInsights}
                   newsA={a.newsA}
                   newsB={a.newsB}
+                  quotes={quotes}
                 />
               )}
               {tab === 2 && <BrandonMock q={a.waClient} ans={a.waBrandon} />}
