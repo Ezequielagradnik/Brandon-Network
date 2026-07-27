@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { useLang } from "@/components/LangProvider";
 
@@ -150,22 +151,39 @@ export default function FeedbackPage() {
               key={it.id}
               className="flex gap-4 rounded-[var(--radius-card)] border border-navy/10 bg-white p-4"
             >
-              <button
+              <motion.button
                 onClick={() => vote(it.id)}
                 aria-pressed={it.voted}
+                whileTap={{ scale: 0.85 }}
                 className={`flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-xl border transition-colors ${
                   it.voted
                     ? "border-gold/50 bg-gold/10 text-gold"
                     : "border-navy/15 text-navy/60 hover:border-gold/40 hover:text-navy"
                 }`}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 19V5M5 12l7-7 7 7" />
-                </svg>
+                <motion.span
+                  key={it.voted ? "on" : "off"}
+                  initial={{ scale: 0.5 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 14 }}
+                >
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill={it.voted ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                  </svg>
+                </motion.span>
                 <span className="tabular mt-0.5 text-sm font-semibold">
                   {it.votes}
                 </span>
-              </button>
+              </motion.button>
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-navy">{it.title}</p>
                 {it.description && (
