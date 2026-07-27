@@ -3,9 +3,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const maxDuration = 15;
 
-// Solo este usuario puede eliminar feedback (ni siquiera otros admins).
-const OWNER_EMAIL = "eagradnik@gmail.com";
-
 export async function GET() {
   const supabase = await createClient();
   const {
@@ -58,8 +55,7 @@ export async function GET() {
     }))
     .sort((a, b) => b.votes - a.votes);
 
-  const canDelete = (user.email ?? "").toLowerCase() === OWNER_EMAIL;
-  return Response.json({ items: list, canDelete, isAdmin });
+  return Response.json({ items: list, canDelete: isAdmin, isAdmin });
 }
 
 const STATUSES = ["nueva", "revision", "planeada", "progreso", "hecha"];
@@ -138,9 +134,13 @@ export async function DELETE(req: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
-  if ((user.email ?? "").toLowerCase() !== OWNER_EMAIL) {
-    return new Response("Forbidden", { status: 403 });
-  }
+
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (prof?.role !== "admin") return new Response("Forbidden", { status: 403 });
 
   let id: string;
   try {
