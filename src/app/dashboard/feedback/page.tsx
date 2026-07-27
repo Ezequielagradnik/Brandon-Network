@@ -21,13 +21,26 @@ export default function FeedbackPage() {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [sending, setSending] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
 
   function load() {
     fetch("/api/feedback", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((d) => setItems(d.items ?? []))
+      .then((d) => {
+        setItems(d.items ?? []);
+        setCanDelete(Boolean(d.canDelete));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
+  }
+
+  function remove(id: string) {
+    setItems((prev) => prev.filter((it) => it.id !== id));
+    fetch("/api/feedback", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    }).catch(() => {});
   }
 
   useEffect(() => {
@@ -161,6 +174,18 @@ export default function FeedbackPage() {
                   </p>
                 )}
               </div>
+              {canDelete && (
+                <button
+                  onClick={() => remove(it.id)}
+                  aria-label={t.common.delete}
+                  title={t.common.delete}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center self-start rounded-lg text-navy/35 transition-colors hover:bg-down/10 hover:text-down"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />
+                  </svg>
+                </button>
+              )}
             </div>
           ))}
         </div>

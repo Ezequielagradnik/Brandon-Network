@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const maxDuration = 15;
+
+// Solo este usuario puede eliminar feedback (ni siquiera otros admins).
+const OWNER_EMAIL = "eagradnik@gmail.com";
 
 export async function GET() {
   const supabase = await createClient();
@@ -34,7 +38,8 @@ export async function GET() {
     }))
     .sort((a, b) => b.votes - a.votes);
 
-  return Response.json({ items: list });
+  const canDelete = (user.email ?? "").toLowerCase() === OWNER_EMAIL;
+  return Response.json({ items: list, canDelete });
 }
 
 export async function POST(req: Request) {
@@ -67,4 +72,29 @@ export async function POST(req: Request) {
 
   if (error) return new Response(error.message, { status: 500 });
   return Response.json({ id: data.id });
+}
+
+export async function DELETE(req: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return new Response("Unauthorized", { status: 401 });
+  if ((user.email ?? "").toLowerCase() !== OWNER_EMAIL) {
+    return new Response("Forbidden", { status: 403 });
+  }
+
+  let id: string;
+  try {
+    const body = await req.json();
+    id = String(body.id ?? "");
+  } catch {
+    return new Response("JSON inválido", { status: 400 });
+  }
+  if (!id) return new Response("Falta id", { status: 400 });
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("feedback").delete().eq("id", id);
+  if (error) return new Response(error.message, { status: 500 });
+  return Response.json({ ok: true });
 }
