@@ -10,9 +10,20 @@ type Item = {
   title: string;
   description: string | null;
   createdAt: string;
+  status: string;
   votes: number;
   voted: boolean;
+  author?: string;
 };
+
+const STATUS_STYLE: Record<string, string> = {
+  nueva: "border-navy/15 bg-navy/[0.04] text-navy/55",
+  revision: "border-gold/40 bg-gold/10 text-[#9a7b32]",
+  planeada: "border-navy/25 bg-navy/[0.06] text-navy/70",
+  progreso: "border-gold/50 bg-gold/15 text-[#9a7b32]",
+  hecha: "border-[var(--up)]/40 bg-[var(--up)]/10 text-[var(--up)]",
+};
+const STATUS_KEYS = ["nueva", "revision", "planeada", "progreso", "hecha"];
 
 export default function FeedbackPage() {
   const { t } = useLang();
@@ -24,6 +35,7 @@ export default function FeedbackPage() {
   const [desc, setDesc] = useState("");
   const [sending, setSending] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [sort, setSort] = useState<"top" | "new">("top");
   const [query, setQuery] = useState("");
   const [toast, setToast] = useState(false);
@@ -35,6 +47,7 @@ export default function FeedbackPage() {
       .then((d) => {
         setItems(d.items ?? []);
         setCanDelete(Boolean(d.canDelete));
+        setIsAdmin(Boolean(d.isAdmin));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -50,6 +63,17 @@ export default function FeedbackPage() {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
+    }).catch(() => {});
+  }
+
+  function setStatus(id: string, status: string) {
+    setItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, status } : it)),
+    );
+    fetch("/api/feedback", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
     }).catch(() => {});
   }
 
@@ -256,10 +280,42 @@ export default function FeedbackPage() {
                 </motion.span>
               </motion.button>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-[11px] text-navy/40">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] text-navy/40">
                   <span className="font-semibold">#{i + 1}</span>
                   <span>·</span>
                   <span>{ago(it.createdAt)}</span>
+                  {isAdmin && it.author && (
+                    <>
+                      <span>·</span>
+                      <span>
+                        {f.by} {it.author}
+                      </span>
+                    </>
+                  )}
+                  <div className="ml-auto">
+                    {isAdmin ? (
+                      <select
+                        value={it.status}
+                        onChange={(e) => setStatus(it.id, e.target.value)}
+                        className={`cursor-pointer rounded-full border px-2 py-0.5 text-[10px] font-medium outline-none ${STATUS_STYLE[it.status] ?? STATUS_STYLE.nueva}`}
+                      >
+                        {STATUS_KEYS.map((k) => (
+                          <option key={k} value={k}>
+                            {(f.statusLabels as Record<string, string>)[k]}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      it.status !== "nueva" && (
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${STATUS_STYLE[it.status] ?? STATUS_STYLE.nueva}`}
+                        >
+                          {(f.statusLabels as Record<string, string>)[it.status] ??
+                            it.status}
+                        </span>
+                      )
+                    )}
+                  </div>
                 </div>
                 <p className="mt-1 font-medium text-navy">{it.title}</p>
                 {it.description && (
