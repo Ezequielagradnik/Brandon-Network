@@ -89,8 +89,8 @@ export const dict = {
     login: { phrasePre: "Preservando tu", phraseAccent: "legado", note: "Acceso exclusivo para clientes y administradores de Brandon Network.", google: "Continuar con Google", connecting: "Conectando…", email: "Email", password: "Contraseña", name: "Nombre", signIn: "Iniciar sesión", signUp: "Crear cuenta", toSignUp: "¿No tienes cuenta? Crear una", toSignIn: "¿Ya tienes cuenta? Iniciar sesión", or: "o", checkEmail: "Te enviamos un correo para confirmar tu cuenta.", authError: "No se pudo completar. Revisa los datos e intenta de nuevo." },
     about: {
       eyebrow: "La plataforma",
-      title: "Tu patrimonio en Estados Unidos,",
-      titleAccent: "en un solo lugar",
+      title: "Asesoría patrimonial,",
+      titleAccent: "pensada para cada cliente",
       lead: "Una plataforma privada para familias y empresas de Latinoamérica con intereses en EE. UU. Respuestas, mercado y acompañamiento, todo junto.",
       demoQ: "¿Cómo tributa un trust en EE. UU.?",
       demoA: "Depende del tipo de trust y de la residencia del beneficiario.",
@@ -311,8 +311,8 @@ export const dict = {
     login: { phrasePre: "Preserving your", phraseAccent: "legacy", note: "Exclusive access for Brandon Network clients and administrators.", google: "Continue with Google", connecting: "Connecting…", email: "Email", password: "Password", name: "Name", signIn: "Sign in", signUp: "Create account", toSignUp: "No account? Create one", toSignIn: "Already have an account? Sign in", or: "or", checkEmail: "We sent you an email to confirm your account.", authError: "Could not complete. Check your details and try again." },
     about: {
       eyebrow: "The platform",
-      title: "Your U.S. wealth,",
-      titleAccent: "all in one place",
+      title: "Wealth advisory,",
+      titleAccent: "tailored to each client",
       lead: "A private platform for Latin American families and businesses with interests in the United States. Answers, markets and support, together.",
       demoQ: "How is a U.S. trust taxed?",
       demoA: "It depends on the type of trust and the beneficiary's residence.",
@@ -533,8 +533,8 @@ export const dict = {
     login: { phrasePre: "Preservando o seu", phraseAccent: "legado", note: "Acesso exclusivo para clientes e administradores da Brandon Network.", google: "Continuar com Google", connecting: "Conectando…", email: "Email", password: "Senha", name: "Nome", signIn: "Entrar", signUp: "Criar conta", toSignUp: "Não tem conta? Criar uma", toSignIn: "Já tem conta? Entrar", or: "ou", checkEmail: "Enviamos um e-mail para confirmar sua conta.", authError: "Não foi possível concluir. Confira os dados e tente novamente." },
     about: {
       eyebrow: "A plataforma",
-      title: "Seu patrimônio nos EUA,",
-      titleAccent: "tudo em um só lugar",
+      title: "Assessoria patrimonial,",
+      titleAccent: "pensada para cada cliente",
       lead: "Uma plataforma privada para famílias e empresas da América Latina com interesses nos Estados Unidos. Respostas, mercado e acompanhamento, juntos.",
       demoQ: "Como um trust é tributado nos EUA?",
       demoA: "Depende do tipo de trust e da residência do beneficiário.",
