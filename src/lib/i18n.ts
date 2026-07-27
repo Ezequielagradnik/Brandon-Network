@@ -63,7 +63,7 @@ export const dict = {
       line1: "Tu asistente de IA",
       forWord: "para",
       words: ["finanzas", "legales", "datos tributarios"],
-      sub: "Brandon Network es un producto de Brandon Latam, curado exclusivamente para nuestros clientes.",
+      sub: "Brandon Network es un producto de Brandon Latam, brindado exclusivamente para nuestros clientes.",
       prompts: [
         "Calculá los taxes a pagar en EE.UU. de Criptolab, Inc.",
         "Redactá un contrato de servicios para un cliente en México",
@@ -136,7 +136,7 @@ export const dict = {
     noticias: {
       title: "Noticias del",
       accent: "mercado",
-      subtitle: "Lo último de los mercados financieros, curado para tu patrimonio.",
+      subtitle: "Lo último de los mercados financieros, brindado para tu patrimonio.",
       agoMin: "hace {n} min",
       agoH: "hace {n} h",
       cat: { Todas: "Todas", Macro: "Macro", "Renta fija": "Renta fija", Patrimonio: "Patrimonio", Mercados: "Mercados" },
