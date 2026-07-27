@@ -142,8 +142,8 @@ export default function FeedbackPage() {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={sending || !title.trim()}
-            className="rounded-full bg-navy px-6 py-2.5 text-sm font-medium text-ivory shadow-[0_10px_24px_-12px_rgba(11,27,46,0.5)] transition-all hover:bg-navy-2 disabled:opacity-45 disabled:shadow-none"
+            disabled={sending}
+            className="rounded-full bg-navy px-6 py-2.5 text-sm font-medium text-ivory shadow-[0_10px_24px_-12px_rgba(11,27,46,0.5)] transition-all hover:bg-navy-2 disabled:opacity-60"
           >
             {sending ? f.sending : f.submit}
           </button>
