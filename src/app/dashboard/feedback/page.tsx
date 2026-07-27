@@ -155,9 +155,9 @@ export default function FeedbackPage() {
                 onClick={() => vote(it.id)}
                 aria-pressed={it.voted}
                 whileTap={{ scale: 0.85 }}
-                className={`flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-xl border transition-colors ${
+                className={`flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-xl border outline-none transition-colors focus-visible:ring-2 focus-visible:ring-gold/40 ${
                   it.voted
-                    ? "border-gold/50 bg-gold/10 text-gold"
+                    ? "border-gold bg-gold text-white shadow-[0_8px_20px_-8px_rgba(194,161,91,0.7)]"
                     : "border-navy/15 text-navy/60 hover:border-gold/40 hover:text-navy"
                 }`}
               >
