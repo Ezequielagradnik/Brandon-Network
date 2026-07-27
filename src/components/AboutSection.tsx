@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useInView, animate } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "@/components/LangProvider";
 import CompanyLogo from "@/components/CompanyLogo";
 
@@ -301,34 +301,6 @@ function AppPreview() {
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
-  const ref = useRef<HTMLParagraphElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
-  const [display, setDisplay] = useState<string>(value);
-
-  useEffect(() => {
-    const m = value.match(/^(\d+)(\D*)$/);
-    if (!m || !inView) return;
-    const target = parseInt(m[1], 10);
-    const suffix = m[2];
-    const controls = animate(0, target, {
-      duration: 1.3,
-      ease: "easeOut",
-      onUpdate: (v) => setDisplay(`${Math.round(v)}${suffix}`),
-    });
-    return () => controls.stop();
-  }, [inView, value]);
-
-  return (
-    <div className="px-4">
-      <p ref={ref} className="tabular font-display text-3xl text-navy sm:text-4xl">
-        {display}
-      </p>
-      <p className="mt-1 text-xs uppercase tracking-wide text-navy/45">{label}</p>
-    </div>
-  );
-}
-
 export default function AboutSection() {
   const { t } = useLang();
   const a = t.about;
@@ -359,12 +331,11 @@ export default function AboutSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.6, ease: EASE }}
-          className="max-w-2xl"
         >
-          <h2 className="font-display text-4xl leading-tight text-navy sm:text-5xl">
+          <h2 className="text-balance font-display text-4xl leading-tight text-navy sm:text-5xl">
             {a.title} <span className="italic text-gold">{a.titleAccent}</span>
           </h2>
-          <p className="mt-5 text-lg leading-relaxed text-navy/60">{a.lead}</p>
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-navy/60">{a.lead}</p>
         </motion.div>
 
         {/* Dos columnas */}
@@ -378,7 +349,7 @@ export default function AboutSection() {
           >
             {a.features.map((f, i) => (
               <motion.div key={i} variants={item} className="group flex gap-4">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/25 bg-gold/10 text-gold transition-colors group-hover:bg-gold group-hover:text-white">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/25 bg-gold/10 text-gold transition-colors group-hover:border-navy group-hover:bg-navy group-hover:text-white">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     {ICONS[i]}
                   </svg>
@@ -401,20 +372,6 @@ export default function AboutSection() {
           </motion.div>
         </div>
 
-        {/* Franja de confianza con peso visual */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mt-14 rounded-2xl border border-navy/10 bg-white/50 px-6 py-8 shadow-[0_20px_60px_-40px_rgba(11,27,46,0.4)]"
-        >
-          <div className="grid grid-cols-3 divide-x divide-navy/10 text-center">
-            {a.stats.map((s, i) => (
-              <Stat key={i} value={s.value} label={s.label} />
-            ))}
-          </div>
-        </motion.div>
       </div>
     </section>
   );
