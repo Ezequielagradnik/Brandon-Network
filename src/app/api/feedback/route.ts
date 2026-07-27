@@ -33,6 +33,7 @@ export async function GET() {
       id: it.id,
       title: it.title,
       description: it.description,
+      createdAt: it.created_at,
       votes: counts.get(it.id) ?? 0,
       voted: mine.has(it.id),
     }))

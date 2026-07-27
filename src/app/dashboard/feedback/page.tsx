@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { useLang } from "@/components/LangProvider";
@@ -9,6 +9,7 @@ type Item = {
   id: string;
   title: string;
   description: string | null;
+  createdAt: string;
   votes: number;
   voted: boolean;
 };
@@ -23,6 +24,8 @@ export default function FeedbackPage() {
   const [desc, setDesc] = useState("");
   const [sending, setSending] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
+  const [sort, setSort] = useState<"top" | "new">("top");
+  const descRef = useRef<HTMLTextAreaElement>(null);
 
   function load() {
     fetch("/api/feedback", { cache: "no-store" })
@@ -35,6 +38,10 @@ export default function FeedbackPage() {
       .finally(() => setLoading(false));
   }
 
+  useEffect(() => {
+    load();
+  }, []);
+
   function remove(id: string) {
     setItems((prev) => prev.filter((it) => it.id !== id));
     fetch("/api/feedback", {
@@ -43,10 +50,6 @@ export default function FeedbackPage() {
       body: JSON.stringify({ id }),
     }).catch(() => {});
   }
-
-  useEffect(() => {
-    load();
-  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,6 +65,7 @@ export default function FeedbackPage() {
       if (r.ok) {
         setTitle("");
         setDesc("");
+        if (descRef.current) descRef.current.style.height = "auto";
         load();
       }
     } catch {
@@ -72,25 +76,38 @@ export default function FeedbackPage() {
   }
 
   function vote(id: string) {
-    // Optimista
     setItems((prev) =>
-      [...prev]
-        .map((it) =>
-          it.id === id
-            ? {
-                ...it,
-                voted: !it.voted,
-                votes: it.votes + (it.voted ? -1 : 1),
-              }
-            : it,
-        )
-        .sort((a, b) => b.votes - a.votes),
+      prev.map((it) =>
+        it.id === id
+          ? { ...it, voted: !it.voted, votes: it.votes + (it.voted ? -1 : 1) }
+          : it,
+      ),
     );
     fetch("/api/feedback/vote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ feedbackId: id }),
     }).catch(() => {});
+  }
+
+  const visible = useMemo(
+    () =>
+      [...items].sort((a, b) =>
+        sort === "top"
+          ? b.votes - a.votes || b.createdAt.localeCompare(a.createdAt)
+          : b.createdAt.localeCompare(a.createdAt),
+      ),
+    [items, sort],
+  );
+
+  function ago(iso: string) {
+    const s = Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 1000));
+    if (s < 60) return f.agoNow;
+    const m = Math.floor(s / 60);
+    if (m < 60) return f.agoMin.replace("{n}", String(m));
+    const h = Math.floor(m / 60);
+    if (h < 24) return f.agoH.replace("{n}", String(h));
+    return f.agoDay.replace("{n}", String(Math.floor(h / 24)));
   }
 
   return (
@@ -100,7 +117,7 @@ export default function FeedbackPage() {
       {/* Nueva idea */}
       <form
         onSubmit={submit}
-        className="animate-fade-up mt-8 space-y-3 rounded-[var(--radius-card)] border border-navy/10 bg-white p-5 shadow-[0_8px_30px_-20px_rgba(11,27,46,0.3)]"
+        className="animate-fade-up mt-8 space-y-2.5 rounded-[var(--radius-card)] border border-navy/10 bg-white p-4 shadow-[0_8px_30px_-20px_rgba(11,27,46,0.3)]"
       >
         <input
           value={title}
@@ -110,26 +127,52 @@ export default function FeedbackPage() {
           className="w-full rounded-xl border border-navy/15 bg-white px-4 py-3 text-sm font-medium text-navy placeholder:text-navy/40 focus:border-gold/50 focus:outline-none"
         />
         <textarea
+          ref={descRef}
           value={desc}
-          onChange={(e) => setDesc(e.target.value)}
+          onChange={(e) => {
+            setDesc(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = `${e.target.scrollHeight}px`;
+          }}
           maxLength={1000}
-          rows={3}
+          rows={2}
           placeholder={f.formDesc}
-          className="w-full resize-none rounded-xl border border-navy/15 bg-white px-4 py-3 text-sm text-navy placeholder:text-navy/40 focus:border-gold/50 focus:outline-none"
+          className="max-h-48 w-full resize-none overflow-hidden rounded-xl border border-navy/15 bg-white px-4 py-3 text-sm text-navy placeholder:text-navy/40 focus:border-gold/50 focus:outline-none"
         />
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={sending || !title.trim()}
-            className="rounded-full bg-navy px-6 py-2.5 text-sm font-medium text-ivory transition-colors hover:bg-navy-2 disabled:opacity-40"
+            className="rounded-full bg-navy px-6 py-2.5 text-sm font-medium text-ivory shadow-[0_10px_24px_-12px_rgba(11,27,46,0.5)] transition-all hover:bg-navy-2 disabled:opacity-45 disabled:shadow-none"
           >
             {sending ? f.sending : f.submit}
           </button>
         </div>
       </form>
 
-      {/* Lista */}
-      <h2 className="mt-10 mb-4 font-display text-2xl text-navy">{f.listTitle}</h2>
+      {/* Pestañas + contador */}
+      <div className="mt-10 mb-4 flex items-center justify-between">
+        <div className="flex gap-1">
+          {(["top", "new"] as const).map((k) => (
+            <button
+              key={k}
+              onClick={() => setSort(k)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                sort === k
+                  ? "bg-navy/[0.06] text-navy"
+                  : "text-navy/45 hover:text-navy"
+              }`}
+            >
+              {k === "top" ? f.tabTop : f.tabNew}
+            </button>
+          ))}
+        </div>
+        {items.length > 0 && (
+          <span className="text-xs text-navy/45">
+            {f.count.replace("{n}", String(items.length))}
+          </span>
+        )}
+      </div>
 
       {loading ? (
         <div className="space-y-3">
@@ -146,10 +189,13 @@ export default function FeedbackPage() {
         </p>
       ) : (
         <div className="space-y-3">
-          {items.map((it) => (
-            <div
+          {visible.map((it, i) => (
+            <motion.div
               key={it.id}
-              className="flex gap-4 rounded-[var(--radius-card)] border border-navy/10 bg-white p-4"
+              layout
+              whileHover={{ y: -4 }}
+              transition={{ type: "spring", stiffness: 300, damping: 24 }}
+              className="flex gap-4 rounded-[var(--radius-card)] border border-navy/10 bg-white p-4 transition-shadow hover:shadow-[0_14px_40px_-24px_rgba(11,27,46,0.4)]"
             >
               <motion.button
                 onClick={() => vote(it.id)}
@@ -171,12 +217,23 @@ export default function FeedbackPage() {
                     <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
                   </svg>
                 </motion.span>
-                <span className="tabular mt-0.5 text-sm font-semibold">
+                <motion.span
+                  key={it.votes}
+                  initial={{ scale: 0.4, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 600, damping: 16 }}
+                  className="tabular mt-0.5 text-sm font-semibold"
+                >
                   {it.votes}
-                </span>
+                </motion.span>
               </motion.button>
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-navy">{it.title}</p>
+                <div className="flex items-center gap-2 text-[11px] text-navy/40">
+                  <span className="font-semibold">#{i + 1}</span>
+                  <span>·</span>
+                  <span>{ago(it.createdAt)}</span>
+                </div>
+                <p className="mt-1 font-medium text-navy">{it.title}</p>
                 {it.description && (
                   <p className="mt-1 text-sm leading-relaxed text-navy/55">
                     {it.description}
@@ -195,7 +252,7 @@ export default function FeedbackPage() {
                   </svg>
                 </button>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
