@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { useLang } from "@/components/LangProvider";
 
@@ -25,6 +25,8 @@ export default function FeedbackPage() {
   const [sending, setSending] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
   const [sort, setSort] = useState<"top" | "new">("top");
+  const [query, setQuery] = useState("");
+  const [toast, setToast] = useState(false);
   const descRef = useRef<HTMLTextAreaElement>(null);
 
   function load() {
@@ -66,6 +68,8 @@ export default function FeedbackPage() {
         setTitle("");
         setDesc("");
         if (descRef.current) descRef.current.style.height = "auto";
+        setToast(true);
+        window.setTimeout(() => setToast(false), 2800);
         load();
       }
     } catch {
@@ -90,15 +94,21 @@ export default function FeedbackPage() {
     }).catch(() => {});
   }
 
-  const visible = useMemo(
-    () =>
-      [...items].sort((a, b) =>
-        sort === "top"
-          ? b.votes - a.votes || b.createdAt.localeCompare(a.createdAt)
-          : b.createdAt.localeCompare(a.createdAt),
-      ),
-    [items, sort],
-  );
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = q
+      ? items.filter(
+          (it) =>
+            it.title.toLowerCase().includes(q) ||
+            (it.description ?? "").toLowerCase().includes(q),
+        )
+      : items;
+    return [...filtered].sort((a, b) =>
+      sort === "top"
+        ? b.votes - a.votes || b.createdAt.localeCompare(a.createdAt)
+        : b.createdAt.localeCompare(a.createdAt),
+    );
+  }, [items, sort, query]);
 
   function ago(iso: string) {
     const s = Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 1000));
@@ -154,8 +164,22 @@ export default function FeedbackPage() {
         </div>
       </form>
 
+      {/* Buscador */}
+      <div className="mt-10 flex items-center gap-2 rounded-xl border border-navy/15 bg-white px-3.5 py-2.5 transition-colors focus-within:border-gold/50">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="shrink-0 text-navy/40">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3" />
+        </svg>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={f.searchPlaceholder}
+          className="flex-1 bg-transparent text-sm text-navy placeholder:text-navy/40 focus:outline-none"
+        />
+      </div>
+
       {/* Pestañas + contador */}
-      <div className="mt-10 mb-4 flex items-center justify-between">
+      <div className="mt-4 mb-4 flex items-center justify-between">
         <div className="flex gap-1">
           {(["top", "new"] as const).map((k) => (
             <button
@@ -187,7 +211,7 @@ export default function FeedbackPage() {
             />
           ))}
         </div>
-      ) : items.length === 0 ? (
+      ) : visible.length === 0 ? (
         <p className="rounded-[var(--radius-card)] border border-dashed border-navy/15 bg-white/60 px-5 py-8 text-center text-sm text-navy/45">
           {f.empty}
         </p>
@@ -260,6 +284,76 @@ export default function FeedbackPage() {
           ))}
         </div>
       )}
+
+      {/* Toast épico al enviar */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 60, scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            className="fixed bottom-8 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border border-gold/30 bg-white px-5 py-3.5 shadow-[0_24px_60px_-18px_rgba(11,27,46,0.45)]"
+          >
+            {/* halo dorado */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-2 -z-10 rounded-3xl opacity-70 blur-xl"
+              style={{ background: "radial-gradient(circle at 20% 50%, rgba(194,161,91,0.35), transparent 70%)" }}
+            />
+
+            {/* badge con check + destellos */}
+            <div className="relative">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 380, damping: 14 }}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#C2A15B] to-[#D9C291] shadow-[0_8px_20px_-6px_rgba(194,161,91,0.8)]"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <motion.path
+                    d="M5 13l4 4L19 7"
+                    stroke="white"
+                    strokeWidth="2.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ delay: 0.18, duration: 0.4, ease: "easeOut" }}
+                  />
+                </svg>
+              </motion.div>
+
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                {Array.from({ length: 7 }).map((_, i) => {
+                  const angle = (i / 7) * Math.PI * 2;
+                  return (
+                    <motion.span
+                      key={i}
+                      className="absolute h-1.5 w-1.5 rounded-full bg-gold"
+                      initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+                      animate={{
+                        x: Math.cos(angle) * 30,
+                        y: Math.sin(angle) * 30,
+                        scale: [0, 1, 0.3],
+                        opacity: [0, 1, 0],
+                      }}
+                      transition={{ delay: 0.2, duration: 0.75, ease: "easeOut" }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <p className="font-display text-lg leading-tight text-navy">
+                {f.thanks}
+              </p>
+              <p className="text-xs text-navy/55">{f.thanksSub}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

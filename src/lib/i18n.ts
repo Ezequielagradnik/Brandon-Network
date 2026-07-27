@@ -132,6 +132,9 @@ export const dict = {
       agoMin: "hace {n} min",
       agoH: "hace {n} h",
       agoDay: "hace {n} d",
+      searchPlaceholder: "Buscar ideas…",
+      thanks: "¡Gracias!",
+      thanksSub: "Tu idea se sumó",
     },
     sidebar: { asistente: "Asistente", noticias: "Noticias", empresas: "Empresas", brandon: "Chat con Brandon", feedback: "Feedback", mensajes: "Mensajes", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Cerrar sesión", expand: "Expandir", collapse: "Colapsar", newChat: "Nuevo chat", chats: "Tus chats", loadMore: "Cargar más", rename: "Renombrar", delete: "Eliminar", deleteConfirm: "¿Eliminar esta conversación?", deleteHint: "Esta acción no se puede deshacer.", cancel: "Cancelar", today: "Hoy", yesterday: "Ayer", last30: "Últimos 30 días", older: "Anteriores" },
     asistente: {
@@ -373,6 +376,9 @@ export const dict = {
       agoMin: "{n} min ago",
       agoH: "{n} h ago",
       agoDay: "{n} d ago",
+      searchPlaceholder: "Search ideas…",
+      thanks: "Thank you!",
+      thanksSub: "Your idea was added",
     },
     sidebar: { asistente: "Assistant", noticias: "News", empresas: "Companies", brandon: "Chat with Brandon", feedback: "Feedback", mensajes: "Messages", irs: "IRS", videos: "Videos", admin: "Admin", logout: "Sign out", expand: "Expand", collapse: "Collapse", newChat: "New chat", chats: "Your chats", loadMore: "Load more", rename: "Rename", delete: "Delete", deleteConfirm: "Delete this conversation?", deleteHint: "This action can't be undone.", cancel: "Cancel", today: "Today", yesterday: "Yesterday", last30: "Previous 30 days", older: "Older" },
     asistente: {
@@ -614,6 +620,9 @@ export const dict = {
       agoMin: "há {n} min",
       agoH: "há {n} h",
       agoDay: "há {n} d",
+      searchPlaceholder: "Buscar ideias…",
+      thanks: "Obrigado!",
+      thanksSub: "Sua ideia foi adicionada",
     },
     sidebar: { asistente: "Assistente", noticias: "Notícias", empresas: "Empresas", brandon: "Chat com a Brandon", feedback: "Feedback", mensajes: "Mensagens", irs: "IRS", videos: "Vídeos", admin: "Admin", logout: "Sair", expand: "Expandir", collapse: "Recolher", newChat: "Novo chat", chats: "Suas conversas", loadMore: "Carregar mais", rename: "Renomear", delete: "Excluir", deleteConfirm: "Excluir esta conversa?", deleteHint: "Esta ação não pode ser desfeita.", cancel: "Cancelar", today: "Hoje", yesterday: "Ontem", last30: "Últimos 30 dias", older: "Anteriores" },
     asistente: {
