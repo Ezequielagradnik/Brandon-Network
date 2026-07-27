@@ -140,13 +140,17 @@ export default function FeedbackPage() {
           className="max-h-48 w-full resize-none overflow-hidden rounded-xl border border-navy/15 bg-white px-4 py-3 text-sm text-navy placeholder:text-navy/40 focus:border-gold/50 focus:outline-none"
         />
         <div className="flex justify-end">
-          <button
+          <motion.button
             type="submit"
             disabled={sending}
-            className="rounded-full bg-navy px-6 py-2.5 text-sm font-medium text-ivory shadow-[0_10px_24px_-12px_rgba(11,27,46,0.5)] transition-all hover:bg-navy-2 disabled:opacity-60"
+            whileHover={{ y: -2, scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+            className="group relative overflow-hidden rounded-full bg-gradient-to-r from-[#C2A15B] to-[#D9C291] px-7 py-2.5 text-sm font-semibold text-navy shadow-[0_12px_30px_-10px_rgba(194,161,91,0.7)] disabled:opacity-60"
           >
-            {sending ? f.sending : f.submit}
-          </button>
+            <span className="relative z-10">{sending ? f.sending : f.submit}</span>
+            <span className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/50 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
+          </motion.button>
         </div>
       </form>
 
