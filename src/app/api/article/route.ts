@@ -12,6 +12,34 @@ export async function GET(req: Request) {
   const target = new URL(req.url).searchParams.get("url");
   if (!target) return new Response("url requerido", { status: 400 });
 
+  // 1) World News API: texto completo confiable (medios abiertos)
+  const wnKey = process.env.WORLD_NEWS_API_KEY;
+  if (wnKey) {
+    try {
+      const r = await fetch(
+        `https://api.worldnewsapi.com/extract-news?url=${encodeURIComponent(target)}&api-key=${wnKey}`,
+        { cache: "no-store", signal: AbortSignal.timeout(20000) },
+      );
+      if (r.ok) {
+        const j = await r.json();
+        const text = (j?.text || "").trim();
+        if (text.length >= 200) {
+          return Response.json(
+            { ok: true, content: text.slice(0, 12000) },
+            {
+              headers: {
+                "Cache-Control": "s-maxage=600, stale-while-revalidate=3600",
+              },
+            },
+          );
+        }
+      }
+    } catch {
+      /* seguimos con el fallback */
+    }
+  }
+
+  // 2) Fallback: Jina Reader (gratis)
   try {
     const r = await fetch(`https://r.jina.ai/${target}`, {
       headers: {
