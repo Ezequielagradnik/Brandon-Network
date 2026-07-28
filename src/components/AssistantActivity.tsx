@@ -136,7 +136,7 @@ export default function AssistantActivity({
           ))}
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid gap-6 lg:grid-cols-2 lg:items-start">
           {/* Preguntas más frecuentes */}
           <div className="rounded-[var(--radius-card)] border border-navy/10 bg-white p-5">
             <h3 className="text-sm font-medium text-navy/70">{l.topTitle}</h3>
@@ -164,20 +164,36 @@ export default function AssistantActivity({
           {/* Preguntas por día */}
           <div className="rounded-[var(--radius-card)] border border-navy/10 bg-white p-5">
             <h3 className="text-sm font-medium text-navy/70">{l.perDay}</h3>
-            <div className="mt-6 flex h-32 items-end gap-1.5">
+            <div className="mt-6 flex h-44 items-stretch gap-1.5 border-b border-navy/10">
               {perDay.map((b, i) => (
-                <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
-                  <div className="flex w-full flex-1 items-end">
-                    <div
-                      className="w-full rounded-t bg-navy/80 transition-all"
-                      style={{ height: `${(b.count / maxDay) * 100}%`, minHeight: b.count ? 3 : 0 }}
-                      title={`${b.count}`}
-                    />
-                  </div>
-                  <span className="tabular text-[9px] text-navy/35">
-                    {new Date(b.dayStart).toLocaleDateString(locale, { day: "numeric" })}
-                  </span>
+                <div
+                  key={i}
+                  className="flex flex-1 flex-col items-center justify-end gap-1"
+                >
+                  {b.count > 0 && (
+                    <span className="tabular text-[10px] font-medium text-navy/55">
+                      {b.count}
+                    </span>
+                  )}
+                  <div
+                    className="w-full rounded-t bg-navy/80 transition-all"
+                    style={{
+                      height: `${(b.count / maxDay) * 100}%`,
+                      minHeight: b.count ? 6 : 0,
+                    }}
+                    title={`${b.count}`}
+                  />
                 </div>
+              ))}
+            </div>
+            <div className="mt-1.5 flex gap-1.5">
+              {perDay.map((b, i) => (
+                <span
+                  key={i}
+                  className="tabular flex-1 text-center text-[9px] text-navy/35"
+                >
+                  {new Date(b.dayStart).toLocaleDateString(locale, { day: "numeric" })}
+                </span>
               ))}
             </div>
           </div>
