@@ -7,7 +7,7 @@ export const maxDuration = 30;
 // caer al resumen limpio.
 function looksLikeJunk(t: string) {
   const head = t.slice(0, 600).toLowerCase();
-  return /skip to content|create free account|power to investors|sign in to continue|subscribe to (continue|read)|enable javascript|please enable/i.test(
+  return /skip to content|skip navigation|create free account|power to investors|pre-markets|sign in to continue|subscribe to (continue|read)|enable javascript|please enable/i.test(
     head,
   );
 }
