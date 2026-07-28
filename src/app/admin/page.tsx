@@ -3,12 +3,9 @@ import PageHeader from "@/components/PageHeader";
 import AdminStats from "@/components/AdminStats";
 import AdminSkeleton from "@/components/AdminSkeleton";
 import UsageChart from "@/components/UsageChart";
-import AssistantActivity, {
-  type QA,
-  type TopQuestion,
-  type PerUserRow,
-} from "@/components/AssistantActivity";
+import AssistantActivity from "@/components/AssistantActivity";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { buildAssistantData, type Msg } from "@/lib/adminAssistant";
 import { getT, getLang } from "@/lib/lang";
 import type { Dict, Lang } from "@/lib/i18n";
 
@@ -24,26 +21,7 @@ type Row = {
   credits: number;
 };
 
-type Msg = {
-  id: string;
-  conversation_id: string;
-  role: string;
-  content: string;
-  created_at: string;
-};
-
-type AssistantData = {
-  stats: { qToday: number; q30: number; usersToday: number; avgSeconds: number };
-  top: TopQuestion[];
-  perDay: { dayStart: number; count: number }[];
-  today: QA[];
-  perUser: PerUserRow[];
-};
-
 const DAYS = 14;
-
-const normQ = (s: string) =>
-  s.toLowerCase().replace(/\s+/g, " ").replace(/[¿?¡!.,;:]+$/g, "").trim();
 
 async function loadAdminData() {
   const admin = createAdminClient();
@@ -149,138 +127,27 @@ async function loadAdminData() {
   const nameByUser = new Map<string, { name: string; email: string }>();
   for (const r of rows) nameByUser.set(r.id, { name: r.name, email: r.email });
 
-  const convUser = new Map<string, string>();
-  for (const c of conversations ?? []) convUser.set(c.id, c.user_id);
+  const assistant = buildAssistantData({
+    conversations: conversations ?? [],
+    messages: (aiMsgs ?? []) as Msg[],
+    activity: activityRows ?? [],
+    names: nameByUser,
+  });
 
-  const secondsByUser = new Map<string, number>();
-  for (const a of activityRows ?? [])
-    secondsByUser.set(a.user_id, a.active_seconds ?? 0);
-
-  const todayStart = startToday0.getTime();
-  const aiPerDay: { dayStart: number; count: number }[] = [];
-  for (let i = 0; i < DAYS; i++)
-    aiPerDay.push({ dayStart: chatsSince.getTime() + i * 86400000, count: 0 });
-
-  const topMap = new Map<string, { text: string; count: number }>();
-  const perUserAgg = new Map<
-    string,
-    { today: number; total: number; last: number | null }
-  >();
-  const convMsgs = new Map<string, Msg[]>();
-  let qToday = 0;
-  let q30 = 0;
-  const usersToday = new Set<string>();
-
-  for (const m of (aiMsgs ?? []) as Msg[]) {
-    if (!convMsgs.has(m.conversation_id)) convMsgs.set(m.conversation_id, []);
-    convMsgs.get(m.conversation_id)!.push(m);
-
-    if (m.role !== "user") continue;
-    const uid = convUser.get(m.conversation_id);
-    if (!uid) continue;
-    const ts = Date.parse(m.created_at);
-    q30++;
-
-    const idx = Math.floor((ts - chatsSince.getTime()) / 86400000);
-    if (idx >= 0 && idx < DAYS) aiPerDay[idx].count++;
-
-    const text = (m.content || "").trim();
-    const key = normQ(text);
-    if (key.length >= 4) {
-      const cur = topMap.get(key);
-      if (cur) cur.count++;
-      else topMap.set(key, { text: text.slice(0, 140), count: 1 });
-    }
-
-    const agg = perUserAgg.get(uid) ?? { today: 0, total: 0, last: null };
-    agg.total++;
-    if (ts >= todayStart) agg.today++;
-    agg.last = Math.max(agg.last ?? 0, ts);
-    perUserAgg.set(uid, agg);
-
-    if (ts >= todayStart) {
-      qToday++;
-      usersToday.add(uid);
-    }
-  }
-
-  // Preguntas de hoy con su respuesta (la primera del asistente que sigue)
-  const todayQA: QA[] = [];
-  for (const [convId, list] of convMsgs) {
-    const uid = convUser.get(convId);
-    if (!uid) continue;
-    const who = nameByUser.get(uid);
-    for (let i = 0; i < list.length; i++) {
-      const m = list[i];
-      if (m.role !== "user") continue;
-      const ts = Date.parse(m.created_at);
-      if (ts < todayStart) continue;
-      let answer: string | null = null;
-      for (let j = i + 1; j < list.length; j++) {
-        if (list[j].role === "assistant") {
-          answer = (list[j].content || "").slice(0, 800);
-          break;
-        }
-        if (list[j].role === "user") break;
-      }
-      todayQA.push({
-        id: m.id,
-        user: who?.name ?? "—",
-        question: (m.content || "").slice(0, 300),
-        answer,
-        time: ts,
-      });
-    }
-  }
-  todayQA.sort((a, b) => b.time - a.time);
-
-  const top = [...topMap.values()]
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 6)
-    .filter((q) => q.count > 0);
-
-  const perUser: PerUserRow[] = [];
-  const userIds = new Set<string>([
-    ...perUserAgg.keys(),
-    ...secondsByUser.keys(),
-  ]);
-  for (const uid of userIds) {
-    const who = nameByUser.get(uid);
-    if (!who) continue;
-    const agg = perUserAgg.get(uid);
-    perUser.push({
-      name: who.name,
-      email: who.email,
-      today: agg?.today ?? 0,
-      total: agg?.total ?? 0,
-      seconds: secondsByUser.get(uid) ?? 0,
-      last: agg?.last ?? null,
-    });
-  }
-  perUser.sort(
-    (a, b) => b.today - a.today || b.total - a.total || b.seconds - a.seconds,
-  );
-
-  const activeSecondsList = [...secondsByUser.values()].filter((s) => s > 0);
-  const avgSeconds = activeSecondsList.length
-    ? Math.round(
-        activeSecondsList.reduce((s, v) => s + v, 0) / activeSecondsList.length,
-      )
-    : 0;
-
-  const assistant: AssistantData = {
-    stats: { qToday, q30, usersToday: usersToday.size, avgSeconds },
-    top,
-    perDay: aiPerDay,
-    today: todayQA.slice(0, 60),
-    perUser,
-  };
+  // Usuarios que aparecen en el selector (los que preguntaron alguna vez)
+  const assistantUsers = assistant.perUser
+    .map((u) => {
+      const row = rows.find((r) => r.email === u.email);
+      return row ? { id: row.id, name: u.name } : null;
+    })
+    .filter((x): x is { id: string; name: string } => x !== null);
 
   return {
     rows,
     values: [activeUsers, loginsToday, total, newThisMonth],
     buckets,
     assistant,
+    assistantUsers,
   };
 }
 
@@ -304,7 +171,8 @@ export default async function AdminPage() {
 
 async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
   const locale = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-AR";
-  const { rows, values, buckets, assistant } = await loadAdminData();
+  const { rows, values, buckets, assistant, assistantUsers } =
+    await loadAdminData();
 
   const metrics = values.map((v, i) => ({
     label: t.admin.metrics[i] ?? "",
@@ -410,11 +278,8 @@ async function AdminData({ t, lang }: { t: Dict; lang: Lang }) {
       </div>
 
       <AssistantActivity
-        stats={assistant.stats}
-        top={assistant.top}
-        perDay={assistant.perDay}
-        today={assistant.today}
-        perUser={assistant.perUser}
+        initial={assistant}
+        users={assistantUsers}
         locale={locale}
         l={t.admin.assistant}
       />
