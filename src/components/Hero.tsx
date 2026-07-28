@@ -146,8 +146,8 @@ export default function Hero() {
           <Image
             src="/brand/brandon-network-navy.png"
             alt="Brandon Network"
-            width={1548}
-            height={562}
+            width={1560}
+            height={358}
             priority
             className="h-9 w-auto shrink-0 sm:h-14"
           />
@@ -322,8 +322,8 @@ export default function Hero() {
             <Image
               src="/brand/brandon-network-navy.png"
               alt="Brandon Network"
-              width={1548}
-              height={562}
+              width={1560}
+              height={358}
               className="mx-auto mb-6 h-7 w-auto"
             />
 

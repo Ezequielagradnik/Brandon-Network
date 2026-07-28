@@ -16,8 +16,8 @@ export default function LoginPage() {
         <Image
           src="/brand/brandon-network-white.png"
           alt="Brandon Network"
-          width={1548}
-          height={562}
+          width={1560}
+          height={358}
           priority
           className="h-auto w-52"
         />
