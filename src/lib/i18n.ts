@@ -63,7 +63,7 @@ export const dict = {
       line1: "Tu asistente de IA",
       forWord: "para",
       words: ["finanzas", "legales", "datos tributarios"],
-      sub: "Brandon Network es un producto de Brandon Latam, brindado exclusivamente para nuestros clientes.",
+      sub: "Brandon Latam Network, brindado exclusivamente para nuestros clientes.",
       prompts: [
         "Calculá los taxes a pagar en EE.UU. de Criptolab, Inc.",
         "Redactá un contrato de servicios para un cliente en México",
@@ -80,7 +80,7 @@ export const dict = {
       ],
       gate: {
         title: "Iniciá sesión para continuar",
-        body: "El asistente de Brandon Network es exclusivo para clientes. Ingresá con tu cuenta para usarlo.",
+        body: "El asistente de Brandon Latam Network es exclusivo para clientes. Ingresá con tu cuenta para usarlo.",
         register: "Registrarse",
         noAccount: "¿No tenés cuenta?",
         cancel: "Ahora no",
@@ -315,7 +315,7 @@ export const dict = {
       line1: "Your AI assistant",
       forWord: "for",
       words: ["finance", "legal", "tax data"],
-      sub: "Brandon Network is a Brandon Latam product, curated exclusively for our clients.",
+      sub: "Brandon Latam Network, provided exclusively for our clients.",
       prompts: [
         "Calculate the U.S. taxes owed by Criptolab, Inc.",
         "Draft a services agreement for a client in Mexico",
@@ -332,7 +332,7 @@ export const dict = {
       ],
       gate: {
         title: "Sign in to continue",
-        body: "The Brandon Network assistant is exclusive to clients. Sign in with your account to use it.",
+        body: "The Brandon Latam Network assistant is exclusive to clients. Sign in with your account to use it.",
         register: "Sign up",
         noAccount: "Don't have an account?",
         cancel: "Not now",
@@ -567,7 +567,7 @@ export const dict = {
       line1: "Seu assistente de IA",
       forWord: "para",
       words: ["finanças", "jurídico", "dados tributários"],
-      sub: "A Brandon Network é um produto da Brandon Latam, curado exclusivamente para os nossos clientes.",
+      sub: "A Brandon Latam Network, oferecida exclusivamente para os nossos clientes.",
       prompts: [
         "Calcule os impostos a pagar nos EUA da Criptolab, Inc.",
         "Redija um contrato de serviços para um cliente no México",
@@ -584,7 +584,7 @@ export const dict = {
       ],
       gate: {
         title: "Entre para continuar",
-        body: "O assistente da Brandon Network é exclusivo para clientes. Entre com a sua conta para usá-lo.",
+        body: "O assistente da Brandon Latam Network é exclusivo para clientes. Entre com a sua conta para usá-lo.",
         register: "Cadastrar-se",
         noAccount: "Não tem conta?",
         cancel: "Agora não",

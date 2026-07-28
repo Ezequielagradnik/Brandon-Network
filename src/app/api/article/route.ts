@@ -2,6 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 30;
 
+// Cuando un medio con muro de pago (ej. SeekingAlpha) bloquea la nota, el
+// extractor devuelve el menú/nav en vez del artículo. Lo detectamos para
+// caer al resumen limpio.
+function looksLikeJunk(t: string) {
+  const head = t.slice(0, 600).toLowerCase();
+  return /skip to content|create free account|power to investors|sign in to continue|subscribe to (continue|read)|enable javascript|please enable/i.test(
+    head,
+  );
+}
+
 export async function GET(req: Request) {
   const supabase = await createClient();
   const {
@@ -23,7 +33,7 @@ export async function GET(req: Request) {
       if (r.ok) {
         const j = await r.json();
         const text = (j?.text || "").trim();
-        if (text.length >= 200) {
+        if (text.length >= 200 && !looksLikeJunk(text)) {
           return Response.json(
             { ok: true, content: text.slice(0, 12000) },
             {
