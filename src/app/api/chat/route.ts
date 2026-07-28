@@ -180,17 +180,29 @@ export async function POST(req: Request) {
     return new Response("JSON inválido", { status: 400 });
   }
 
-  // Sistema de créditos: cada pregunta cuesta COST (500 créditos = 10 preguntas)
+  // Sistema de créditos: cada pregunta cuesta COST (500 créditos = 10 preguntas).
+  // Los admins tienen crédito ilimitado (no se les cobra).
   const COST = 50;
-  const { data: remaining, error: creditErr } = await supabase.rpc(
-    "spend_credits",
-    { cost: COST },
-  );
-  if (creditErr) {
-    return new Response("No se pudieron verificar los créditos", { status: 500 });
-  }
-  if (typeof remaining !== "number" || remaining < 0) {
-    return new Response("Sin créditos", { status: 402 });
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const isAdmin = prof?.role === "admin";
+
+  let creditsHeader = "unlimited";
+  if (!isAdmin) {
+    const { data: remaining, error: creditErr } = await supabase.rpc(
+      "spend_credits",
+      { cost: COST },
+    );
+    if (creditErr) {
+      return new Response("No se pudieron verificar los créditos", { status: 500 });
+    }
+    if (typeof remaining !== "number" || remaining < 0) {
+      return new Response("Sin créditos", { status: 402 });
+    }
+    creditsHeader = String(remaining);
   }
 
   const messages: Anthropic.MessageParam[] = incoming.map((m) => ({
@@ -250,7 +262,7 @@ export async function POST(req: Request) {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-store",
-      "X-Credits-Remaining": String(remaining),
+      "X-Credits-Remaining": creditsHeader,
     },
   });
 }

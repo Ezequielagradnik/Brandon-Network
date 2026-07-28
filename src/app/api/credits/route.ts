@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data } = await supabase
     .from("profiles")
-    .select("credits, full_name")
+    .select("credits, full_name, role")
     .eq("id", user.id)
     .single();
 
@@ -23,5 +23,6 @@ export async function GET() {
     cost: 50,
     total: 500,
     name: firstName,
+    unlimited: data?.role === "admin",
   });
 }

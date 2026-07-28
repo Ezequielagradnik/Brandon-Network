@@ -28,6 +28,7 @@ function Assistant() {
   const [loading, setLoading] = useState(false);
   const [followups, setFollowups] = useState<string[]>([]);
   const [credits, setCredits] = useState<number | null>(null);
+  const [unlimited, setUnlimited] = useState(false);
   const [name, setName] = useState("");
   const [salute, setSalute] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -95,6 +96,7 @@ function Assistant() {
       .then((d) => {
         if (!d) return;
         setCredits(d.credits);
+        setUnlimited(!!d.unlimited);
         if (d.name) setName(d.name);
       })
       .catch(() => {});
@@ -104,8 +106,8 @@ function Assistant() {
     const clean = text.trim();
     if (!clean || loading) return;
 
-    // Sin créditos: feedback inmediato, sin llamar a la API
-    if (credits !== null && credits < 50) {
+    // Sin créditos: feedback inmediato, sin llamar a la API (los admins no se capan)
+    if (!unlimited && credits !== null && credits < 50) {
       setMessages((prev) => [
         ...prev,
         { role: "user", content: clean },
@@ -174,7 +176,7 @@ function Assistant() {
       if (!res.ok || !res.body) throw new Error(await res.text());
 
       const rem = res.headers.get("X-Credits-Remaining");
-      if (rem !== null) setCredits(parseInt(rem, 10));
+      if (rem !== null && rem !== "unlimited") setCredits(parseInt(rem, 10));
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -380,7 +382,7 @@ function Assistant() {
             disabled={
               loading ||
               !input.trim() ||
-              (credits !== null && credits < 50)
+              (!unlimited && credits !== null && credits < 50)
             }
             aria-label={t.asistente.send}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy text-ivory transition-all hover:bg-navy-2 disabled:opacity-40"
@@ -392,13 +394,20 @@ function Assistant() {
         </div>
         <p className="mt-2 text-center text-[11px] text-navy/35">
           {t.asistente.disclaimer}
-          {credits !== null && (
+          {unlimited ? (
             <>
               {" · "}
-              <span className={credits < 50 ? "font-medium text-down" : "text-navy/45"}>
-                {t.asistente.creditsLeft.replace("{n}", String(credits))}
-              </span>
+              <span className="text-navy/45">{t.asistente.creditsUnlimited}</span>
             </>
+          ) : (
+            credits !== null && (
+              <>
+                {" · "}
+                <span className={credits < 50 ? "font-medium text-down" : "text-navy/45"}>
+                  {t.asistente.creditsLeft.replace("{n}", String(credits))}
+                </span>
+              </>
+            )
           )}
         </p>
       </form>
