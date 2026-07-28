@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useLang } from "@/components/LangProvider";
 import AssetsCard from "@/components/AssetsCard";
 import MarketInsightsCard from "@/components/MarketInsightsCard";
-import ArticleReader, { type News } from "@/components/ArticleReader";
+import { type News } from "@/components/ArticleReader";
+import { newsId, NEWS_STASH_PREFIX } from "@/lib/newsId";
 
 type Data = { news: News[] };
 
 export default function NoticiasPage() {
   const { t } = useLang();
+  const router = useRouter();
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
-  const [article, setArticle] = useState<News | null>(null);
 
   useEffect(() => {
     fetch("/api/news", { cache: "no-store" })
@@ -29,23 +31,32 @@ export default function NoticiasPage() {
     return t.noticias.agoH.replace("{n}", String(Math.round(min / 60)));
   }
 
+  // Guardamos la nota y navegamos a su página completa.
+  function open(n: News) {
+    const id = newsId(n.link);
+    try {
+      sessionStorage.setItem(NEWS_STASH_PREFIX + id, JSON.stringify(n));
+    } catch {
+      /* sin sessionStorage igual navegamos */
+    }
+    router.push(`/dashboard/noticias/${id}`);
+  }
+
   return (
     <div className="flex h-full flex-col px-6 py-6 lg:px-8">
       <div className="grid min-h-0 flex-1 gap-5 lg:grid-cols-2 lg:grid-rows-1">
         <div className="h-[72vh] min-h-0 lg:h-full">
-          <AssetsCard onOpen={setArticle} ago={ago} />
+          <AssetsCard onOpen={open} ago={ago} />
         </div>
         <div className="h-[72vh] min-h-0 lg:h-full">
           <MarketInsightsCard
             news={data?.news ?? []}
             loading={loading}
-            onOpen={setArticle}
+            onOpen={open}
             ago={ago}
           />
         </div>
       </div>
-
-      <ArticleReader article={article} onClose={() => setArticle(null)} ago={ago} />
     </div>
   );
 }
