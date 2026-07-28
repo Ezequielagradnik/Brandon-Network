@@ -107,7 +107,7 @@ type FinnhubArticle = {
 // Solo estas fuentes: traen imágenes reales y relevantes (no logos ni stock genérico).
 // Finnhub (feed gratis) solo devuelve Yahoo, Benzinga, SeekingAlpha, CNBC y
 // ChartMill para estos tickers. Nos quedamos con las de imágenes buenas.
-const ALLOWED_SOURCES = ["seekingalpha", "benzinga", "cnbc"];
+const ALLOWED_SOURCES = ["benzinga", "cnbc"];
 const normSource = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
 
 async function finnhubNews(): Promise<News[]> {
