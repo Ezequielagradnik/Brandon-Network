@@ -6,8 +6,32 @@ type Msg = { role: "user" | "assistant"; content: string };
 // pdfmake usa tipos laxos para el docDefinition; lo tratamos como any acá.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+// La fuente embebida (Roboto) no tiene emojis: los quitamos para que no
+// aparezcan como cuadraditos rotos.
+function stripEmoji(s: string) {
+  return s.replace(/[\p{Extended_Pictographic}️‍]/gu, "").replace(/\s{2,}/g, " ");
+}
+
+// Carga un asset público como data URL (para embeberlo en el PDF).
+async function loadDataUrl(path: string): Promise<string | null> {
+  try {
+    const res = await fetch(path);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result as string);
+      fr.onerror = reject;
+      fr.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 // --- Inline: **negrita**, `código`, [texto](url) -> runs de pdfmake ---
-function inlineRuns(text: string): any {
+function inlineRuns(input: string): any {
+  const text = stripEmoji(input);
   const runs: any[] = [];
   const re = /(\*\*([^*]+)\*\*)|(`([^`]+)`)|(\[([^\]]+)\]\(([^)]+)\))/g;
   let last = 0;
@@ -158,15 +182,19 @@ export async function exportChatToPdf(
   opts: { title: string; you: string; dateStr: string },
 ) {
   const clean = messages.filter((m) => m.content.trim());
+  const logo = await loadDataUrl("/brand/brandon-network-navy.png");
 
+  // Portada
   const content: any[] = [
-    { text: "Brandon Latam Network", style: "brand" },
-    { text: `${opts.title} · ${opts.dateStr}`, style: "meta" },
+    logo
+      ? { image: logo, width: 150, margin: [0, 0, 0, 6] }
+      : { text: "Brandon Latam Network", style: "brand" },
+    { text: `${stripEmoji(opts.title)} · ${opts.dateStr}`, style: "meta" },
     {
       canvas: [
         { type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: "#C2A15B" },
       ],
-      margin: [0, 6, 0, 16],
+      margin: [0, 8, 0, 18],
     },
   ];
 
@@ -180,7 +208,12 @@ export async function exportChatToPdf(
               {
                 stack: [
                   { text: opts.you.toUpperCase(), style: "whoDark" },
-                  { text: m.content, color: "#F6F3EC", fontSize: 10.5, margin: [0, 3, 0, 0] },
+                  {
+                    text: stripEmoji(m.content),
+                    color: "#F6F3EC",
+                    fontSize: 10.5,
+                    margin: [0, 3, 0, 0],
+                  },
                 ],
                 fillColor: "#0B1B2E",
                 margin: [14, 11, 14, 12],
@@ -199,23 +232,61 @@ export async function exportChatToPdf(
   }
 
   const docDefinition: any = {
-    info: { title: opts.title },
+    info: { title: stripEmoji(opts.title) },
     pageSize: "A4",
-    pageMargins: [48, 44, 48, 52],
+    pageMargins: [48, logo ? 64 : 44, 48, 58],
+    // Logo + línea dorada arriba de las páginas interiores (la 1 ya tiene portada)
+    header: (currentPage: number) =>
+      currentPage === 1 || !logo
+        ? undefined
+        : {
+            margin: [48, 20, 48, 0],
+            stack: [
+              { image: logo, width: 104 },
+              {
+                canvas: [
+                  { type: "line", x1: 0, y1: 6, x2: 515, y2: 6, lineWidth: 0.5, lineColor: "#C2A15B" },
+                ],
+              },
+            ],
+          },
+    // Pie con marca y número de página en todas
+    footer: (currentPage: number, pageCount: number) => ({
+      margin: [48, 0, 48, 18],
+      stack: [
+        {
+          canvas: [
+            { type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: "#C2A15B" },
+          ],
+        },
+        {
+          columns: [
+            { text: "Brandon Latam Network", fontSize: 8, color: "#9A7B32", margin: [0, 6, 0, 0] },
+            {
+              text: `${currentPage} / ${pageCount}`,
+              alignment: "right",
+              fontSize: 8,
+              color: "#9ca3af",
+              margin: [0, 6, 0, 0],
+            },
+          ],
+        },
+      ],
+    }),
     content,
     defaultStyle: { font: "Roboto", fontSize: 10.5, color: "#11243B", lineHeight: 1.35 },
     styles: {
       brand: { fontSize: 20, bold: true, color: "#0B1B2E" },
       meta: { fontSize: 9, color: "#6b7280", margin: [0, 3, 0, 0] },
-      who: { fontSize: 8, color: "#9ca3af", margin: [0, 12, 0, 4] },
+      who: { fontSize: 8, bold: true, color: "#9A7B32", margin: [0, 12, 0, 4] },
       whoDark: { fontSize: 8, color: "#8b93a1" },
       h2: { fontSize: 14, bold: true, color: "#0B1B2E", margin: [0, 12, 0, 5] },
-      h3: { fontSize: 12, bold: true, color: "#0B1B2E", margin: [0, 9, 0, 3] },
+      h3: { fontSize: 12, bold: true, color: "#9A7B32", margin: [0, 9, 0, 3] },
       p: { fontSize: 10.5, margin: [0, 4, 0, 4] },
       code: { fontSize: 9.5, color: "#9A7B32" },
       quote: { fontSize: 10.5, color: "#5b4a22" },
       tableCell: { fontSize: 9.5 },
-      th: { fontSize: 9.5, bold: true, fillColor: "#f3f4f6", color: "#0B1B2E" },
+      th: { fontSize: 9.5, bold: true, fillColor: "#0B1B2E", color: "#F6F3EC" },
     },
   };
 
