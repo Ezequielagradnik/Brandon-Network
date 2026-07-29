@@ -1,24 +1,30 @@
-// Exporta una conversación a PDF sin librerías: arma un documento imprimible
-// y abre el diálogo de impresión del navegador (Guardar como PDF).
+// Exporta una conversación a PDF con pdfmake: descarga directa (sin diálogo de
+// impresión), texto vectorial seleccionable, listo para enviar a un tercero.
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-function esc(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
+// pdfmake usa tipos laxos para el docDefinition; lo tratamos como any acá.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-function inline(s: string) {
-  let t = esc(s);
-  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
-  t = t.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2">$1</a>',
-  );
-  return t;
+// --- Inline: **negrita**, `código`, [texto](url) -> runs de pdfmake ---
+function inlineRuns(text: string): any {
+  const runs: any[] = [];
+  const re = /(\*\*([^*]+)\*\*)|(`([^`]+)`)|(\[([^\]]+)\]\(([^)]+)\))/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    if (m.index > last) runs.push({ text: text.slice(last, m.index) });
+    if (m[2] != null) runs.push({ text: m[2], bold: true });
+    else if (m[4] != null) runs.push({ text: m[4], style: "code" });
+    else if (m[6] != null)
+      runs.push({ text: m[6], link: m[7], color: "#9A7B32", decoration: "underline" });
+    last = re.lastIndex;
+  }
+  if (last < text.length) runs.push({ text: text.slice(last) });
+  if (runs.length === 0) return text;
+  if (runs.length === 1 && !runs[0].bold && !runs[0].style && !runs[0].link)
+    return runs[0].text;
+  return runs;
 }
 
 function cells(row: string) {
@@ -30,176 +36,206 @@ function cells(row: string) {
     .map((c) => c.trim());
 }
 
-// Conversión mínima de Markdown a HTML (títulos, negritas, listas, tablas, citas).
-function mdToHtml(md: string): string {
+// --- Markdown -> nodos de contenido pdfmake ---
+function mdToPdf(md: string): any[] {
   const lines = md.split(/\r?\n/);
-  let html = "";
+  const out: any[] = [];
   let i = 0;
-  let list: "ul" | "ol" | null = null;
-  const closeList = () => {
-    if (list) {
-      html += `</${list}>`;
-      list = null;
+  let listBuf: any[] | null = null;
+  let listType: "ul" | "ol" | null = null;
+  const flushList = () => {
+    if (listBuf && listType) {
+      out.push({ [listType]: listBuf, style: "p", margin: [0, 2, 0, 6] });
     }
+    listBuf = null;
+    listType = null;
   };
 
   while (i < lines.length) {
-    const line = lines[i];
-    const t = line.trim();
+    const t = lines[i].trim();
 
     // Tabla
     if (
       t.startsWith("|") &&
       i + 1 < lines.length &&
-      lines[i + 1].includes("-") &&
-      /^[\s|:-]+$/.test(lines[i + 1].trim())
+      /^[\s|:-]+$/.test(lines[i + 1].trim()) &&
+      lines[i + 1].includes("-")
     ) {
-      closeList();
-      html += "<table><thead><tr>";
-      for (const c of cells(t)) html += `<th>${inline(c)}</th>`;
-      html += "</tr></thead><tbody>";
+      flushList();
+      const header = cells(t).map((c) => ({ text: inlineRuns(c), style: "th" }));
+      const body: any[] = [header];
       i += 2;
       while (i < lines.length && lines[i].trim().startsWith("|")) {
-        html += "<tr>";
-        for (const c of cells(lines[i])) html += `<td>${inline(c)}</td>`;
-        html += "</tr>";
+        body.push(cells(lines[i]).map((c) => ({ text: inlineRuns(c), style: "tableCell" })));
         i++;
       }
-      html += "</tbody></table>";
+      out.push({
+        table: { headerRows: 1, widths: header.map(() => "*"), body },
+        layout: "lightHorizontalLines",
+        margin: [0, 6, 0, 8],
+      });
       continue;
     }
 
     if (t === "") {
-      closeList();
+      flushList();
       i++;
       continue;
     }
     if (t.startsWith("### ")) {
-      closeList();
-      html += `<h3>${inline(t.slice(4))}</h3>`;
+      flushList();
+      out.push({ text: inlineRuns(t.slice(4)), style: "h3" });
     } else if (t.startsWith("## ")) {
-      closeList();
-      html += `<h2>${inline(t.slice(3))}</h2>`;
+      flushList();
+      out.push({ text: inlineRuns(t.slice(3)), style: "h2" });
     } else if (t.startsWith("# ")) {
-      closeList();
-      html += `<h2>${inline(t.slice(2))}</h2>`;
+      flushList();
+      out.push({ text: inlineRuns(t.slice(2)), style: "h2" });
     } else if (t.startsWith("> ")) {
-      closeList();
-      html += `<blockquote>${inline(t.slice(2))}</blockquote>`;
+      flushList();
+      out.push({
+        table: {
+          widths: ["*"],
+          body: [
+            [
+              {
+                text: inlineRuns(t.slice(2)),
+                style: "quote",
+                fillColor: "#FBF6E9",
+                margin: [12, 8, 12, 8],
+                border: [false, false, false, false],
+              },
+            ],
+          ],
+        },
+        layout: "noBorders",
+        margin: [0, 8, 0, 8],
+      });
     } else if (/^(-{3,}|\*{3,})$/.test(t)) {
-      closeList();
-      html += "<hr/>";
+      flushList();
+      out.push({
+        canvas: [
+          { type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: "#e5e7eb" },
+        ],
+        margin: [0, 6, 0, 6],
+      });
     } else if (/^[-*]\s+/.test(t)) {
-      if (list !== "ul") {
-        closeList();
-        html += "<ul>";
-        list = "ul";
+      if (listType !== "ul") {
+        flushList();
+        listBuf = [];
+        listType = "ul";
       }
-      html += `<li>${inline(t.replace(/^[-*]\s+/, ""))}</li>`;
+      listBuf!.push(inlineRuns(t.replace(/^[-*]\s+/, "")));
     } else if (/^\d+\.\s+/.test(t)) {
-      if (list !== "ol") {
-        closeList();
-        html += "<ol>";
-        list = "ol";
+      if (listType !== "ol") {
+        flushList();
+        listBuf = [];
+        listType = "ol";
       }
-      html += `<li>${inline(t.replace(/^\d+\.\s+/, ""))}</li>`;
+      listBuf!.push(inlineRuns(t.replace(/^\d+\.\s+/, "")));
     } else {
-      closeList();
-      html += `<p>${inline(t)}</p>`;
+      flushList();
+      out.push({ text: inlineRuns(t), style: "p" });
     }
     i++;
   }
-  closeList();
-  return html;
+  flushList();
+  return out;
 }
 
-const STYLES = `
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #11243B; max-width: 720px; margin: 0 auto; padding: 40px 28px; line-height: 1.55; }
-  .head { border-bottom: 2px solid #C2A15B; padding-bottom: 14px; margin-bottom: 28px; }
-  .brand { font-family: Georgia, "Times New Roman", serif; font-size: 26px; color: #0B1B2E; }
-  .brand em { color: #9A7B32; font-style: italic; }
-  .meta { color: #6b7280; font-size: 12px; margin-top: 4px; }
-  .turn { margin: 0 0 22px; page-break-inside: avoid; }
-  .who { text-transform: uppercase; letter-spacing: .04em; font-size: 10px; color: #9ca3af; margin-bottom: 6px; }
-  .q { background: #0B1B2E; color: #F6F3EC; border-radius: 12px; padding: 12px 16px; font-size: 14px; }
-  .q .who { color: rgba(246,243,236,.55); }
-  .a { padding: 2px 2px 0; font-size: 14px; }
-  .a h2 { font-family: Georgia, serif; font-size: 18px; color: #0B1B2E; margin: 16px 0 6px; }
-  .a h3 { font-size: 15px; color: #0B1B2E; margin: 14px 0 4px; }
-  .a p { margin: 8px 0; }
-  .a ul, .a ol { margin: 8px 0; padding-left: 20px; }
-  .a li { margin: 3px 0; }
-  .a table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
-  .a th, .a td { border: 1px solid #e5e7eb; padding: 6px 10px; text-align: left; vertical-align: top; }
-  .a th { background: #f3f4f6; }
-  .a blockquote { border: 1px solid rgba(194,161,91,.35); background: rgba(194,161,91,.10); border-radius: 10px; padding: 10px 14px; margin: 12px 0; }
-  .a code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
-  .a a { color: #9A7B32; }
-  @media print { body { padding: 0; } }
-`;
+function safeFilename(s: string) {
+  return (
+    s
+      .replace(/[^\p{L}\p{N}\s._-]/gu, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80) || "conversacion"
+  );
+}
 
-export function exportChatToPdf(
+export async function exportChatToPdf(
   messages: Msg[],
   opts: { title: string; you: string; dateStr: string },
 ) {
   const clean = messages.filter((m) => m.content.trim());
-  const turns = clean
-    .map((m) =>
-      m.role === "user"
-        ? `<div class="turn"><div class="who">${esc(opts.you)}</div><div class="q">${esc(
-            m.content,
-          )}</div></div>`
-        : `<div class="turn"><div class="who">Brandon Latam Network</div><div class="a">${mdToHtml(
-            m.content,
-          )}</div></div>`,
-    )
-    .join("");
 
-  const doc = `<!doctype html><html lang="es"><head><meta charset="utf-8"/><title>${esc(
-    opts.title,
-  )}</title><style>${STYLES}</style></head><body>
-    <div class="head">
-      <div class="brand">Brandon Latam <em>Network</em></div>
-      <div class="meta">${esc(opts.title)} · ${esc(opts.dateStr)}</div>
-    </div>
-    ${turns}
-  </body></html>`;
+  const content: any[] = [
+    { text: "Brandon Latam Network", style: "brand" },
+    { text: `${opts.title} · ${opts.dateStr}`, style: "meta" },
+    {
+      canvas: [
+        { type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: "#C2A15B" },
+      ],
+      margin: [0, 6, 0, 16],
+    },
+  ];
 
-  // Imprimimos en un iframe oculto dentro de la misma página (sin abrir otra
-  // pestaña). El navegador muestra "Guardar como PDF" manteniendo texto nítido.
-  const iframe = document.createElement("iframe");
-  iframe.setAttribute("aria-hidden", "true");
-  iframe.style.cssText =
-    "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
-  document.body.appendChild(iframe);
-
-  const cw = iframe.contentWindow;
-  const cd = iframe.contentDocument || cw?.document;
-  if (!cw || !cd) {
-    iframe.remove();
-    return;
+  for (const m of clean) {
+    if (m.role === "user") {
+      content.push({
+        table: {
+          widths: ["*"],
+          body: [
+            [
+              {
+                stack: [
+                  { text: opts.you.toUpperCase(), style: "whoDark" },
+                  { text: m.content, color: "#F6F3EC", fontSize: 10.5, margin: [0, 3, 0, 0] },
+                ],
+                fillColor: "#0B1B2E",
+                margin: [14, 11, 14, 12],
+                border: [false, false, false, false],
+              },
+            ],
+          ],
+        },
+        layout: "noBorders",
+        margin: [0, 10, 0, 4],
+      });
+    } else {
+      content.push({ text: "BRANDON LATAM NETWORK", style: "who" });
+      content.push(...mdToPdf(m.content));
+    }
   }
 
-  const cleanup = () => {
-    if (document.body.contains(iframe)) iframe.remove();
+  const docDefinition: any = {
+    info: { title: opts.title },
+    pageSize: "A4",
+    pageMargins: [48, 44, 48, 52],
+    content,
+    defaultStyle: { font: "Roboto", fontSize: 10.5, color: "#11243B", lineHeight: 1.35 },
+    styles: {
+      brand: { fontSize: 20, bold: true, color: "#0B1B2E" },
+      meta: { fontSize: 9, color: "#6b7280", margin: [0, 3, 0, 0] },
+      who: { fontSize: 8, color: "#9ca3af", margin: [0, 12, 0, 4] },
+      whoDark: { fontSize: 8, color: "#8b93a1" },
+      h2: { fontSize: 14, bold: true, color: "#0B1B2E", margin: [0, 12, 0, 5] },
+      h3: { fontSize: 12, bold: true, color: "#0B1B2E", margin: [0, 9, 0, 3] },
+      p: { fontSize: 10.5, margin: [0, 4, 0, 4] },
+      code: { fontSize: 9.5, color: "#9A7B32" },
+      quote: { fontSize: 10.5, color: "#5b4a22" },
+      tableCell: { fontSize: 9.5 },
+      th: { fontSize: 9.5, bold: true, fillColor: "#f3f4f6", color: "#0B1B2E" },
+    },
   };
 
-  cd.open();
-  cd.write(doc);
-  cd.close();
+  const [pdfMakeMod, vfsMod] = await Promise.all([
+    import("pdfmake/build/pdfmake"),
+    import("pdfmake/build/vfs_fonts"),
+  ]);
+  const pdfMake: any = (pdfMakeMod as any).default ?? pdfMakeMod;
+  const vfs: any = (vfsMod as any).default ?? vfsMod;
 
-  cw.onafterprint = () => setTimeout(cleanup, 300);
+  if (typeof pdfMake.addVirtualFileSystem === "function") pdfMake.addVirtualFileSystem(vfs);
+  else pdfMake.vfs = vfs;
+  pdfMake.fonts = {
+    Roboto: {
+      normal: "Roboto-Regular.ttf",
+      bold: "Roboto-Medium.ttf",
+      italics: "Roboto-Italic.ttf",
+      bolditalics: "Roboto-MediumItalic.ttf",
+    },
+  };
 
-  setTimeout(() => {
-    try {
-      cw.focus();
-      cw.print();
-    } catch {
-      cleanup();
-    }
-  }, 300);
-
-  // Red de seguridad por si onafterprint no dispara
-  setTimeout(cleanup, 60000);
+  pdfMake.createPdf(docDefinition).download(`${safeFilename(opts.title)}.pdf`);
 }
