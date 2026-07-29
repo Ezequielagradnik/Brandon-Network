@@ -161,7 +161,7 @@ export const dict = {
       questionsLeft: "{n} consultas restantes",
       noCredits: "Te quedaste sin créditos. Cada consulta usa 50 y ya usaste tu cupo. Contactá a Brandon para reponerlos.",
       exportPdf: "Exportar a PDF",
-      exportTitle: "Conversación con Brandon Network",
+      exportTitle: "Conversación con Brandon Latam Network",
       exportYou: "Consulta",
     },
     noticias: {
@@ -439,7 +439,7 @@ export const dict = {
       questionsLeft: "{n} questions left",
       noCredits: "You're out of credits. Each question uses 50 and you've used your quota. Contact Brandon to top up.",
       exportPdf: "Export to PDF",
-      exportTitle: "Conversation with Brandon Network",
+      exportTitle: "Conversation with Brandon Latam Network",
       exportYou: "Question",
     },
     noticias: {
@@ -717,7 +717,7 @@ export const dict = {
       questionsLeft: "{n} consultas restantes",
       noCredits: "Você ficou sem créditos. Cada pergunta usa 50 e você já usou sua cota. Fale com a Brandon para repor.",
       exportPdf: "Exportar para PDF",
-      exportTitle: "Conversa com a Brandon Network",
+      exportTitle: "Conversa com a Brandon Latam Network",
       exportYou: "Pergunta",
     },
     noticias: {

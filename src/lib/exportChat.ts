@@ -150,7 +150,7 @@ export function exportChatToPdf(
         ? `<div class="turn"><div class="who">${esc(opts.you)}</div><div class="q">${esc(
             m.content,
           )}</div></div>`
-        : `<div class="turn"><div class="who">Brandon Network</div><div class="a">${mdToHtml(
+        : `<div class="turn"><div class="who">Brandon Latam Network</div><div class="a">${mdToHtml(
             m.content,
           )}</div></div>`,
     )
@@ -160,16 +160,46 @@ export function exportChatToPdf(
     opts.title,
   )}</title><style>${STYLES}</style></head><body>
     <div class="head">
-      <div class="brand">Brandon <em>Network</em></div>
+      <div class="brand">Brandon Latam <em>Network</em></div>
       <div class="meta">${esc(opts.title)} · ${esc(opts.dateStr)}</div>
     </div>
     ${turns}
-    <script>window.onload=function(){setTimeout(function(){window.print()},250)}</script>
   </body></html>`;
 
-  const w = window.open("", "_blank");
-  if (!w) return;
-  w.document.open();
-  w.document.write(doc);
-  w.document.close();
+  // Imprimimos en un iframe oculto dentro de la misma página (sin abrir otra
+  // pestaña). El navegador muestra "Guardar como PDF" manteniendo texto nítido.
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.cssText =
+    "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
+  document.body.appendChild(iframe);
+
+  const cw = iframe.contentWindow;
+  const cd = iframe.contentDocument || cw?.document;
+  if (!cw || !cd) {
+    iframe.remove();
+    return;
+  }
+
+  const cleanup = () => {
+    if (document.body.contains(iframe)) iframe.remove();
+  };
+
+  cd.open();
+  cd.write(doc);
+  cd.close();
+
+  cw.onafterprint = () => setTimeout(cleanup, 300);
+
+  setTimeout(() => {
+    try {
+      cw.focus();
+      cw.print();
+    } catch {
+      cleanup();
+    }
+  }, 300);
+
+  // Red de seguridad por si onafterprint no dispara
+  setTimeout(cleanup, 60000);
 }
