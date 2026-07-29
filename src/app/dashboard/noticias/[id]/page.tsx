@@ -263,7 +263,7 @@ export default function ArticlePage() {
                         ))}
                       </ul>
                     ) : i === 0 ? (
-                      <p key={i} className="text-[19px] leading-[1.7] text-navy first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-5xl first-letter:leading-[0.85] first-letter:text-navy">
+                      <p key={i} className="text-[19px] font-medium leading-[1.7] text-navy">
                         {b.text}
                       </p>
                     ) : (
