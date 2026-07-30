@@ -21,7 +21,8 @@ Herramientas de datos públicos disponibles:
 - "sec_edgar_search": busca documentos (filings) de empresas en la SEC de EE. UU. mediante EDGAR.
 - "treasury_rates_of_exchange": tasas de cambio oficiales del Tesoro de EE. UU. para convertir moneda extranjera a USD.
 - "courtlistener_search": busca jurisprudencia y fallos judiciales de EE. UU. (federal y estatal) por tema o partes.
-Usa estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, cita la fuente (SEC EDGAR / U.S. Treasury / CourtListener) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.
+- "fdic_bank_lookup": consulta la base oficial de la FDIC para verificar bancos de EE. UU. (si existe, si está activo/asegurado, certificado FDIC, activos, sitio web) o bancos que quebraron. Los activos vienen en miles de USD.
+Usa estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, cita la fuente (SEC EDGAR / U.S. Treasury / CourtListener / FDIC) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.
 
 Formato de la respuesta:
 - Usa Markdown: títulos (##), negritas, listas y tablas cuando aporten claridad. Para comparaciones o desgloses, prefiere una tabla Markdown.
@@ -79,6 +80,32 @@ const tools: Anthropic.Tool[] = [
         },
       },
       required: ["query"],
+    },
+  },
+  {
+    name: "fdic_bank_lookup",
+    description:
+      "Consulta bancos de EE.UU. en la base oficial de la FDIC (BankFind). Úsalo para verificar si un banco existe y está activo/asegurado por la FDIC, ver su ciudad y estado, número de certificado FDIC, activos totales y sitio web. Con failed=true consulta bancos que quebraron (registro histórico desde 1934). Datos oficiales de la FDIC.",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description:
+            "Nombre o parte del nombre del banco, por ejemplo 'Seacoast', 'JPMorgan' o 'Silicon Valley'.",
+        },
+        state: {
+          type: "string",
+          description:
+            "Opcional. Estado de EE.UU. en 2 letras para filtrar (solo bancos activos), por ejemplo 'FL', 'NY', 'CA'.",
+        },
+        failed: {
+          type: "boolean",
+          description:
+            "Opcional. Si es true, busca bancos QUE QUEBRARON en vez de bancos activos.",
+        },
+      },
+      required: [],
     },
   },
 ];
@@ -143,6 +170,50 @@ async function courtListenerSearch(input: { query: string }) {
   return JSON.stringify({ total: json?.count ?? 0, resultados: results });
 }
 
+async function fdicBankLookup(input: {
+  name?: string;
+  state?: string;
+  failed?: boolean;
+}) {
+  const params = new URLSearchParams({ limit: "8", format: "json" });
+
+  if (input.failed) {
+    params.set("fields", "NAME,CITYST,FAILDATE,COST,QBFASSET");
+    params.set("sort_by", "FAILDATE");
+    params.set("sort_order", "DESC");
+    if (input.name) params.set("search", `NAME:${input.name}`);
+    const res = await fetch(`https://api.fdic.gov/banks/failures?${params}`);
+    if (!res.ok) return `Error FDIC: ${res.status}`;
+    const json = await res.json();
+    const resultados = (json?.data ?? []).map((r: any) => ({
+      banco: r.data?.NAME,
+      ciudad_estado: r.data?.CITYST,
+      fecha_quiebra: r.data?.FAILDATE,
+      activos_miles_usd: r.data?.QBFASSET,
+      costo_estimado_miles_usd: r.data?.COST,
+    }));
+    return JSON.stringify({ total: json?.totals?.count ?? 0, quiebras: resultados });
+  }
+
+  params.set("fields", "NAME,CITY,STALP,ACTIVE,WEBADDR,ASSET,CERT,ESTYMD");
+  if (input.name) params.set("search", `NAME:${input.name}`);
+  if (input.state) params.set("filters", `STALP:${input.state.toUpperCase()}`);
+  const res = await fetch(`https://api.fdic.gov/banks/institutions?${params}`);
+  if (!res.ok) return `Error FDIC: ${res.status}`;
+  const json = await res.json();
+  const resultados = (json?.data ?? []).map((r: any) => ({
+    banco: r.data?.NAME,
+    ciudad: r.data?.CITY,
+    estado: r.data?.STALP,
+    activo: r.data?.ACTIVE === 1,
+    cert_fdic: r.data?.CERT,
+    activos_miles_usd: r.data?.ASSET,
+    web: r.data?.WEBADDR,
+    desde: r.data?.ESTYMD,
+  }));
+  return JSON.stringify({ total: json?.totals?.count ?? 0, bancos: resultados });
+}
+
 async function runTool(name: string, input: unknown): Promise<string> {
   try {
     if (name === "sec_edgar_search") return await secEdgarSearch(input as never);
@@ -150,6 +221,7 @@ async function runTool(name: string, input: unknown): Promise<string> {
       return await treasuryRates(input as never);
     if (name === "courtlistener_search")
       return await courtListenerSearch(input as never);
+    if (name === "fdic_bank_lookup") return await fdicBankLookup(input as never);
     return `Herramienta desconocida: ${name}`;
   } catch (e) {
     return `Error al ejecutar ${name}: ${String(e)}`;
