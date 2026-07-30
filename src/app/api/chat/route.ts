@@ -22,7 +22,9 @@ Herramientas de datos públicos disponibles:
 - "treasury_rates_of_exchange": tasas de cambio oficiales del Tesoro de EE. UU. para convertir moneda extranjera a USD.
 - "courtlistener_search": busca jurisprudencia y fallos judiciales de EE. UU. (federal y estatal) por tema o partes.
 - "fdic_bank_lookup": consulta la base oficial de la FDIC para verificar bancos de EE. UU. (si existe, si está activo/asegurado, certificado FDIC, activos, sitio web) o bancos que quebraron. Los activos vienen en miles de USD.
-Usa estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, cita la fuente (SEC EDGAR / U.S. Treasury / CourtListener / FDIC) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.
+- "occ_enforcement_search": busca sanciones y acciones de cumplimiento de la OCC contra bancos nacionales o directivos (órdenes de cese, multas, restituciones, prohibiciones). Útil para due diligence de un banco o persona.
+- "occ_institution_search": busca instituciones reguladas por la OCC (bancos nacionales, cajas de ahorro federales), activas o inactivas, por nombre o número de charter.
+Usa estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, cita la fuente (SEC EDGAR / U.S. Treasury / CourtListener / FDIC / OCC) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.
 
 Formato de la respuesta:
 - Usa Markdown: títulos (##), negritas, listas y tablas cuando aporten claridad. Para comparaciones o desgloses, prefiere una tabla Markdown.
@@ -106,6 +108,37 @@ const tools: Anthropic.Tool[] = [
         },
       },
       required: [],
+    },
+  },
+  {
+    name: "occ_enforcement_search",
+    description:
+      "Busca sanciones y acciones de cumplimiento (enforcement actions) de la OCC contra bancos nacionales de EE. UU., cajas de ahorro federales y personas (directivos). Útil para due diligence: ver si un banco o directivo tuvo órdenes de cese, multas, restituciones o prohibiciones. Búsqueda por nombre de banco, persona, ciudad o estado. Datos oficiales de la OCC.",
+    input_schema: {
+      type: "object",
+      properties: {
+        keyword: {
+          type: "string",
+          description:
+            "Nombre del banco, de la persona, ciudad o estado. Por ejemplo 'PNC', 'Wells Fargo' o 'Miami'.",
+        },
+      },
+      required: ["keyword"],
+    },
+  },
+  {
+    name: "occ_institution_search",
+    description:
+      "Busca instituciones reguladas por la OCC (bancos nacionales, cajas de ahorro federales, sucursales de bancos extranjeros), activas o inactivas, por nombre o número de charter. Devuelve nombre, número de charter, ciudad, estado y si está activa o inactiva. Datos oficiales de la OCC.",
+    input_schema: {
+      type: "object",
+      properties: {
+        keyword: {
+          type: "string",
+          description: "Nombre de la institución o número de charter.",
+        },
+      },
+      required: ["keyword"],
     },
   },
 ];
@@ -214,6 +247,53 @@ async function fdicBankLookup(input: {
   return JSON.stringify({ total: json?.totals?.count ?? 0, bancos: resultados });
 }
 
+const OCC_KEY = process.env.API_DATA_GOV_KEY;
+
+async function occEnforcementSearch(input: { keyword: string }) {
+  if (!OCC_KEY) return "OCC no configurado (falta API_DATA_GOV_KEY).";
+  const kw = encodeURIComponent((input.keyword || "").trim());
+  if (!kw) return "Falta el término de búsqueda.";
+  const res = await fetch(
+    `https://api.occ.gov/EnforcementActions/list/${kw}?api_key=${OCC_KEY}`,
+  );
+  if (!res.ok) return `Error OCC: ${res.status}`;
+  const arr = await res.json();
+  const list = Array.isArray(arr) ? arr : [];
+  const sanciones = list.slice(0, 10).map((e: any) => ({
+    institucion: e.Institution || null,
+    empresa: e.Company || null,
+    individuo: e.Individual || null,
+    ubicacion: e.Location || null,
+    tipo: e.TypeDescription || e.TypeCode || null,
+    monto_usd: e.Amount || null,
+    fecha_inicio: e.StartDate || null,
+    fecha_termino: e.TerminationDate || null,
+    expediente: e.DocketNumber || null,
+  }));
+  return JSON.stringify({ total: list.length, sanciones });
+}
+
+async function occInstitutionSearch(input: { keyword: string }) {
+  if (!OCC_KEY) return "OCC no configurado (falta API_DATA_GOV_KEY).";
+  const kw = encodeURIComponent((input.keyword || "").trim());
+  if (!kw) return "Falta el término de búsqueda.";
+  const res = await fetch(
+    `https://api.occ.gov/Institutions/List/${kw}?api_key=${OCC_KEY}`,
+  );
+  if (!res.ok) return `Error OCC: ${res.status}`;
+  const arr = await res.json();
+  const list = Array.isArray(arr) ? arr : [];
+  const instituciones = list.slice(0, 10).map((i: any) => ({
+    banco: i.BankName || null,
+    charter: i.CharterNumber || null,
+    ciudad: i.BankCity || null,
+    estado: i.BankStateProvinceCode || null,
+    estado_institucion: i.InstStatusDesc || null,
+    actualizado: i.LastUpdated || null,
+  }));
+  return JSON.stringify({ total: list.length, instituciones });
+}
+
 async function runTool(name: string, input: unknown): Promise<string> {
   try {
     if (name === "sec_edgar_search") return await secEdgarSearch(input as never);
@@ -222,6 +302,10 @@ async function runTool(name: string, input: unknown): Promise<string> {
     if (name === "courtlistener_search")
       return await courtListenerSearch(input as never);
     if (name === "fdic_bank_lookup") return await fdicBankLookup(input as never);
+    if (name === "occ_enforcement_search")
+      return await occEnforcementSearch(input as never);
+    if (name === "occ_institution_search")
+      return await occInstitutionSearch(input as never);
     return `Herramienta desconocida: ${name}`;
   } catch (e) {
     return `Error al ejecutar ${name}: ${String(e)}`;
