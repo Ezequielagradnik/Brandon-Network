@@ -31,6 +31,16 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+
+  // Ya no hay página /login: el login vive en el modal de la landing.
+  // Redirigimos cualquier link viejo a la home.
+  if (pathname === "/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
   const isProtected =
     pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
 
