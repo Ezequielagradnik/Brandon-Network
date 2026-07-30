@@ -24,7 +24,8 @@ Herramientas de datos públicos disponibles:
 - "fdic_bank_lookup": consulta la base oficial de la FDIC para verificar bancos de EE. UU. (si existe, si está activo/asegurado, certificado FDIC, activos, sitio web) o bancos que quebraron. Los activos vienen en miles de USD.
 - "occ_enforcement_search": busca sanciones y acciones de cumplimiento de la OCC contra bancos nacionales o directivos (órdenes de cese, multas, restituciones, prohibiciones). Útil para due diligence de un banco o persona.
 - "occ_institution_search": busca instituciones reguladas por la OCC (bancos nacionales, cajas de ahorro federales), activas o inactivas, por nombre o número de charter.
-Usa estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, cita la fuente (SEC EDGAR / U.S. Treasury / CourtListener / FDIC / OCC) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.
+- "uscis_case_status": consulta el estado de un trámite migratorio de USCIS por número de recibo (3 letras + 10 dígitos). Devuelve formulario, fechas y estado del caso en español e inglés. Solo por número de recibo; no busca por nombre.
+Usa estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, cita la fuente (SEC EDGAR / U.S. Treasury / CourtListener / FDIC / OCC / USCIS) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.
 
 Formato de la respuesta:
 - Usa Markdown: títulos (##), negritas, listas y tablas cuando aporten claridad. Para comparaciones o desgloses, prefiere una tabla Markdown.
@@ -139,6 +140,22 @@ const tools: Anthropic.Tool[] = [
         },
       },
       required: ["keyword"],
+    },
+  },
+  {
+    name: "uscis_case_status",
+    description:
+      "Consulta el estado de un trámite migratorio de USCIS (EE. UU.) por número de recibo. El número tiene 13 caracteres: 3 letras + 10 dígitos (por ejemplo 'EAC9999103403'). Devuelve el formulario, las fechas y el estado del caso en español e inglés. Solo consulta por número de recibo; no busca por nombre. Actualmente en ambiente de prueba (sandbox): solo responden recibos de prueba.",
+    input_schema: {
+      type: "object",
+      properties: {
+        receiptNumber: {
+          type: "string",
+          description:
+            "Número de recibo de USCIS: 3 letras seguidas de 10 dígitos, por ejemplo 'EAC9999103403'.",
+        },
+      },
+      required: ["receiptNumber"],
     },
   },
 ];
@@ -294,6 +311,74 @@ async function occInstitutionSearch(input: { keyword: string }) {
   return JSON.stringify({ total: list.length, instituciones });
 }
 
+// --- USCIS: OAuth client-credentials + estado de trámite ---
+let uscisTokenCache: { value: string; exp: number } | null = null;
+
+async function uscisGetToken(): Promise<string | null> {
+  const id = process.env.USCIS_CLIENT_ID;
+  const secret = process.env.USCIS_CLIENT_SECRET;
+  const base = process.env.USCIS_BASE || "https://api-int.uscis.gov";
+  if (!id || !secret) return null;
+  const now = Date.now();
+  if (uscisTokenCache && uscisTokenCache.exp > now + 30000) {
+    return uscisTokenCache.value;
+  }
+  const auth = Buffer.from(`${id}:${secret}`).toString("base64");
+  const res = await fetch(`${base}/oauth/accesstoken`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${auth}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+  if (!res.ok) return null;
+  const j = await res.json();
+  const token = j?.access_token;
+  if (!token) return null;
+  const ttl = parseInt(j?.expires_in ?? "1500", 10);
+  uscisTokenCache = { value: token, exp: now + (isNaN(ttl) ? 1500 : ttl) * 1000 };
+  return token;
+}
+
+async function uscisCaseStatus(input: { receiptNumber: string }) {
+  const base = process.env.USCIS_BASE || "https://api-int.uscis.gov";
+  const rn = (input.receiptNumber || "").trim().toUpperCase().replace(/\s+/g, "");
+  if (!/^[A-Z]{3}\d{10}$/.test(rn)) {
+    return JSON.stringify({
+      error:
+        "Número de recibo inválido. Debe ser 3 letras seguidas de 10 dígitos, por ejemplo EAC9999103403.",
+    });
+  }
+  const token = await uscisGetToken();
+  if (!token)
+    return "USCIS no configurado (faltan credenciales) o no se pudo autenticar.";
+  const res = await fetch(`${base}/case-status/${rn}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return `Error USCIS: ${res.status}`;
+  const j = await res.json();
+  const cs = j?.case_status;
+  if (!cs || !cs.receiptNumber) {
+    return JSON.stringify({
+      encontrado: false,
+      receiptNumber: rn,
+      nota: "Sin datos para ese número de recibo. En sandbox solo responden los recibos de prueba.",
+    });
+  }
+  return JSON.stringify({
+    encontrado: true,
+    receiptNumber: cs.receiptNumber,
+    formulario: cs.formType,
+    enviado: cs.submittedDate,
+    actualizado: cs.modifiedDate,
+    estado_es: cs.current_case_status_text_es || cs.current_case_status_text_en,
+    detalle_es: cs.current_case_status_desc_es || cs.current_case_status_desc_en,
+    estado_en: cs.current_case_status_text_en,
+    detalle_en: cs.current_case_status_desc_en,
+  });
+}
+
 async function runTool(name: string, input: unknown): Promise<string> {
   try {
     if (name === "sec_edgar_search") return await secEdgarSearch(input as never);
@@ -306,6 +391,8 @@ async function runTool(name: string, input: unknown): Promise<string> {
       return await occEnforcementSearch(input as never);
     if (name === "occ_institution_search")
       return await occInstitutionSearch(input as never);
+    if (name === "uscis_case_status")
+      return await uscisCaseStatus(input as never);
     return `Herramienta desconocida: ${name}`;
   } catch (e) {
     return `Error al ejecutar ${name}: ${String(e)}`;
