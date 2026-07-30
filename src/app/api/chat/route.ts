@@ -25,7 +25,9 @@ Herramientas de datos públicos disponibles:
 - "occ_enforcement_search": busca sanciones y acciones de cumplimiento de la OCC contra bancos nacionales o directivos (órdenes de cese, multas, restituciones, prohibiciones). Útil para due diligence de un banco o persona.
 - "occ_institution_search": busca instituciones reguladas por la OCC (bancos nacionales, cajas de ahorro federales), activas o inactivas, por nombre o número de charter.
 - "uscis_case_status": consulta el estado de un trámite migratorio de USCIS por número de recibo (3 letras + 10 dígitos). Devuelve formulario, fechas y estado del caso en español e inglés. Solo por número de recibo; no busca por nombre.
-Usa estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, cita la fuente (SEC EDGAR / U.S. Treasury / CourtListener / FDIC / OCC / USCIS) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.
+- "fred_lookup": datos económicos oficiales de la Reserva Federal (FRED): tasa de la Fed, inflación, rendimientos del Tesoro, desempleo, PBI, tasas hipotecarias. Buscá la serie por texto (search) o traé sus valores por ID (series_id).
+- "irs_exempt_org": busca organizaciones exentas de impuestos de EE. UU. (fundaciones, ONGs, 501(c)(3)) en los datos de formularios 990 del IRS, por nombre o EIN. Útil para verificar fundaciones.
+Usa estas herramientas cuando la pregunta se beneficie de datos concretos y verificables. Cuando las uses, cita la fuente (SEC EDGAR / U.S. Treasury / CourtListener / FDIC / OCC / USCIS / FRED / IRS) y la fecha del dato. Los fallos son antecedentes, no asesoría legal.
 
 Formato de la respuesta:
 - Usa Markdown: títulos (##), negritas, listas y tablas cuando aporten claridad. Para comparaciones o desgloses, prefiere una tabla Markdown.
@@ -156,6 +158,51 @@ const tools: Anthropic.Tool[] = [
         },
       },
       required: ["receiptNumber"],
+    },
+  },
+  {
+    name: "fred_lookup",
+    description:
+      "Consulta datos económicos oficiales de la Reserva Federal (FRED, de la Fed de St. Louis): tasa de la Fed, rendimientos de bonos del Tesoro, inflación (CPI), desempleo, PBI, tasas hipotecarias, etc. Usa 'search' para encontrar el ID de una serie por texto, o 'series_id' para traer los valores más recientes de una serie. IDs útiles: 'DFF' (tasa de fondos federales), 'CPIAUCSL' (inflación IPC), 'DGS10' (bono del Tesoro a 10 años), 'UNRATE' (desempleo), 'MORTGAGE30US' (hipoteca a 30 años), 'GDP' (PBI).",
+    input_schema: {
+      type: "object",
+      properties: {
+        search: {
+          type: "string",
+          description:
+            "Texto para buscar una serie, por ejemplo 'federal funds rate' o 'inflation'.",
+        },
+        series_id: {
+          type: "string",
+          description:
+            "ID de la serie de FRED para traer sus valores, por ejemplo 'DFF' o 'DGS10'.",
+        },
+        limit: {
+          type: "number",
+          description: "Opcional. Cuántos valores recientes traer (por defecto 12).",
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "irs_exempt_org",
+    description:
+      "Busca organizaciones exentas de impuestos de EE. UU. (fundaciones, ONGs, 501(c)(3), etc.) en los datos de formularios 990 del IRS. Usa 'name' para buscar por nombre o 'ein' para el detalle de una organización por su número EIN. Devuelve nombre, EIN, ubicación, sección 501(c), estado de exención, fecha de reconocimiento y cifras (activos, ingresos). Útil para verificar fundaciones.",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description: "Nombre de la organización a buscar.",
+        },
+        ein: {
+          type: "string",
+          description:
+            "Número EIN de la organización (con o sin guion), por ejemplo '53-0196605'.",
+        },
+      },
+      required: [],
     },
   },
 ];
@@ -379,6 +426,105 @@ async function uscisCaseStatus(input: { receiptNumber: string }) {
   });
 }
 
+async function fredLookup(input: {
+  series_id?: string;
+  search?: string;
+  limit?: number;
+}) {
+  const key = process.env.FRED_API_KEY;
+  if (!key) return "FRED no configurado (falta FRED_API_KEY).";
+  const base = "https://api.stlouisfed.org/fred";
+
+  if (input.search) {
+    const url =
+      `${base}/series/search?search_text=${encodeURIComponent(input.search)}` +
+      `&api_key=${key}&file_type=json&limit=8&order_by=popularity&sort_order=desc`;
+    const res = await fetch(url);
+    if (!res.ok) return `Error FRED: ${res.status}`;
+    const j = await res.json();
+    const series = (j?.seriess ?? []).slice(0, 8).map((s: any) => ({
+      id: s.id,
+      titulo: s.title,
+      unidades: s.units,
+      frecuencia: s.frequency,
+      desde: s.observation_start,
+      hasta: s.observation_end,
+    }));
+    return JSON.stringify({ series });
+  }
+
+  if (input.series_id) {
+    const limit = Math.min(Math.max(input.limit ?? 12, 1), 60);
+    const url =
+      `${base}/series/observations?series_id=${encodeURIComponent(input.series_id)}` +
+      `&api_key=${key}&file_type=json&sort_order=desc&limit=${limit}`;
+    const res = await fetch(url);
+    if (!res.ok) return `Error FRED: ${res.status}`;
+    const j = await res.json();
+    const observaciones = (j?.observations ?? [])
+      .map((o: any) => ({ fecha: o.date, valor: o.value }))
+      .filter((o: any) => o.valor && o.valor !== ".");
+    return JSON.stringify({ series_id: input.series_id, observaciones });
+  }
+
+  return JSON.stringify({
+    error: "Indicá 'search' (buscar una serie) o 'series_id' (obtener valores).",
+  });
+}
+
+async function irsExemptOrg(input: { name?: string; ein?: string }) {
+  const base = "https://projects.propublica.org/nonprofits/api/v2";
+
+  if (input.ein) {
+    const ein = (input.ein || "").replace(/[^0-9]/g, "");
+    if (!ein) return JSON.stringify({ error: "EIN inválido." });
+    const res = await fetch(`${base}/organizations/${ein}.json`);
+    if (res.status === 404) return JSON.stringify({ encontrado: false, ein });
+    if (!res.ok) return `Error IRS: ${res.status}`;
+    const j = await res.json();
+    const o = j?.organization;
+    if (!o) return JSON.stringify({ encontrado: false, ein });
+    return JSON.stringify({
+      encontrado: true,
+      nombre: o.name,
+      ein: o.strein || String(o.ein),
+      ciudad: o.city,
+      estado: o.state,
+      seccion: o.subsection_code ? `501(c)(${o.subsection_code})` : null,
+      estado_exencion:
+        o.exempt_organization_status_code === 1
+          ? "Activa"
+          : String(o.exempt_organization_status_code ?? ""),
+      reconocida_desde: o.ruling_date,
+      activos_usd: o.asset_amount,
+      ingresos_usd: o.income_amount,
+      ingresos_totales_usd: o.revenue_amount,
+      ntee: o.ntee_code,
+    });
+  }
+
+  if (input.name) {
+    const res = await fetch(
+      `${base}/search.json?q=${encodeURIComponent(input.name)}`,
+    );
+    if (!res.ok) return `Error IRS: ${res.status}`;
+    const j = await res.json();
+    const organizaciones = (j?.organizations ?? []).slice(0, 8).map((o: any) => ({
+      nombre: o.name,
+      ein: o.strein || String(o.ein),
+      ciudad: o.city,
+      estado: o.state,
+      seccion: o.subseccd ? `501(c)(${o.subseccd})` : null,
+    }));
+    return JSON.stringify({
+      total: j?.total_results ?? organizaciones.length,
+      organizaciones,
+    });
+  }
+
+  return JSON.stringify({ error: "Indicá 'name' (buscar por nombre) o 'ein'." });
+}
+
 async function runTool(name: string, input: unknown): Promise<string> {
   try {
     if (name === "sec_edgar_search") return await secEdgarSearch(input as never);
@@ -393,6 +539,8 @@ async function runTool(name: string, input: unknown): Promise<string> {
       return await occInstitutionSearch(input as never);
     if (name === "uscis_case_status")
       return await uscisCaseStatus(input as never);
+    if (name === "fred_lookup") return await fredLookup(input as never);
+    if (name === "irs_exempt_org") return await irsExemptOrg(input as never);
     return `Herramienta desconocida: ${name}`;
   } catch (e) {
     return `Error al ejecutar ${name}: ${String(e)}`;
