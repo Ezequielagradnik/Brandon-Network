@@ -144,10 +144,16 @@ export async function POST(req: Request) {
     const msg = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 2000,
-      system: `Resumís una conversación entre un cliente y el asistente de asesoría patrimonial y fiscal de Brandon Latam Network, para enviarla por email al cliente. Escribí en el MISMO idioma de la conversación, claro y ejecutivo. Devolvé SOLO un JSON válido, sin texto adicional, con esta forma exacta:
-{"asunto":"asunto breve del email","saludo":"saludo personal","resumen":"1 o 2 frases con lo esencial","puntos_clave":["punto breve","..."],"temas":[{"titulo":"tema","detalle":"explicación en 1-3 frases"}],"proximos_pasos":["acción sugerida","..."]}
+      system: `Resumís una conversación entre un cliente y el asistente de asesoría patrimonial y fiscal de Brandon Latam Network, para enviarla por email al cliente. Escribí TODO (incluido el saludo) en el MISMO idioma que usó el cliente en la conversación, con un tono claro y ejecutivo. Devolvé SOLO un JSON válido, sin texto adicional, con esta forma exacta:
+{"asunto":"asunto breve del email","saludo":"saludo personal en el idioma de la conversación","resumen":"1 o 2 frases con lo esencial","puntos_clave":["punto breve","..."],"temas":[{"titulo":"tema","detalle":"explicación en 1-3 frases"}],"proximos_pasos":["acción sugerida","..."]}
 Si algo no aplica, dejá el arreglo vacío. No inventes datos que no estén en la conversación.`,
-      messages: [{ role: "user", content: transcript }],
+      messages: [
+        {
+          role: "user",
+          content:
+            (name ? `El cliente se llama ${name}.\n\n` : "") + transcript,
+        },
+      ],
     });
     const raw = msg.content.find((b) => b.type === "text");
     const txt = raw && raw.type === "text" ? raw.text : "";
@@ -160,8 +166,11 @@ Si algo no aplica, dejá el arreglo vacío. No inventes datos que no estén en l
     return new Response("No se pudo generar el resumen", { status: 500 });
   }
 
-  const origin = new URL(req.url).origin;
-  const html = buildHtml(summary, name, origin);
+  // URL pública fija para el logo (el origin del request en local es localhost,
+  // que el cliente de mail no puede resolver).
+  const assetBase =
+    process.env.EMAIL_ASSET_BASE || "https://www.brandonlatamnetwork.com";
+  const html = buildHtml(summary, name, assetBase);
   const from =
     process.env.EMAIL_FROM || "Brandon Latam Network <onboarding@resend.dev>";
   const subject = summary.asunto || "Resumen de tu conversación con Brandon Latam Network";
