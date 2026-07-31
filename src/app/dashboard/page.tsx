@@ -29,6 +29,10 @@ function Assistant() {
   const [followups, setFollowups] = useState<string[]>([]);
   const [credits, setCredits] = useState<number | null>(null);
   const [unlimited, setUnlimited] = useState(false);
+  const [emailState, setEmailState] = useState<
+    "idle" | "sending" | "sent" | "error"
+  >("idle");
+  const [emailTo, setEmailTo] = useState("");
   const [name, setName] = useState("");
   const [salute, setSalute] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -252,6 +256,26 @@ function Assistant() {
 
   const empty = messages.length === 0;
 
+  async function handleEmail() {
+    if (emailState === "sending") return;
+    setEmailState("sending");
+    try {
+      const res = await fetch("/api/email-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const d = await res.json();
+      setEmailTo(d.to || "");
+      setEmailState("sent");
+      setTimeout(() => setEmailState("idle"), 6000);
+    } catch {
+      setEmailState("error");
+      setTimeout(() => setEmailState("idle"), 5000);
+    }
+  }
+
   function handleExport() {
     const locale = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-419";
     exportChatToPdf(messages, {
@@ -268,7 +292,30 @@ function Assistant() {
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-6">
       {!empty && (
-        <div className="flex justify-end pt-6">
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-6">
+          {emailState === "sent" && (
+            <span className="text-xs font-medium text-up">
+              ✓ {t.asistente.emailSent.replace("{email}", emailTo)}
+            </span>
+          )}
+          {emailState === "error" && (
+            <span className="text-xs font-medium text-down">
+              {t.asistente.emailError}
+            </span>
+          )}
+          <button
+            onClick={handleEmail}
+            disabled={emailState === "sending"}
+            className="inline-flex items-center gap-2 rounded-xl border border-navy/15 bg-white px-4 py-2.5 text-sm font-medium text-navy/70 shadow-[0_4px_16px_-8px_rgba(11,27,46,0.3)] transition-colors hover:border-gold/50 hover:text-navy disabled:opacity-50"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 6h16v12H4z" />
+              <path d="M4 7l8 6 8-6" />
+            </svg>
+            {emailState === "sending"
+              ? t.asistente.emailSending
+              : t.asistente.emailSend}
+          </button>
           <button
             onClick={handleExport}
             className="inline-flex items-center gap-2 rounded-xl border border-navy/15 bg-white px-4 py-2.5 text-sm font-medium text-navy/70 shadow-[0_4px_16px_-8px_rgba(11,27,46,0.3)] transition-colors hover:border-gold/50 hover:text-navy"
