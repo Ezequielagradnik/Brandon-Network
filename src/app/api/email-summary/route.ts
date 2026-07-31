@@ -9,6 +9,7 @@ type Msg = { role: "user" | "assistant"; content: string };
 type Summary = {
   asunto?: string;
   saludo?: string;
+  idioma?: string;
   resumen?: string;
   puntos_clave?: string[];
   temas?: { titulo: string; detalle: string }[];
@@ -145,7 +146,7 @@ export async function POST(req: Request) {
       model: "claude-haiku-4-5",
       max_tokens: 2000,
       system: `Resumís una conversación entre un cliente y el asistente de asesoría patrimonial y fiscal de Brandon Latam Network, para enviarla por email al cliente. Escribí TODO (incluido el saludo) en el MISMO idioma que usó el cliente en la conversación, con un tono claro y ejecutivo. Devolvé SOLO un JSON válido, sin texto adicional, con esta forma exacta:
-{"asunto":"asunto breve del email","saludo":"saludo personal en el idioma de la conversación","resumen":"1 o 2 frases con lo esencial","puntos_clave":["punto breve","..."],"temas":[{"titulo":"tema","detalle":"explicación en 1-3 frases"}],"proximos_pasos":["acción sugerida","..."]}
+{"idioma":"es | en | pt segun el idioma del cliente","asunto":"asunto breve del email","saludo":"saludo personal en el idioma de la conversación","resumen":"1 o 2 frases con lo esencial","puntos_clave":["punto breve","..."],"temas":[{"titulo":"tema","detalle":"explicación en 1-3 frases"}],"proximos_pasos":["acción sugerida","..."]}
 Si algo no aplica, dejá el arreglo vacío. No inventes datos que no estén en la conversación.`,
       messages: [
         {
@@ -164,6 +165,14 @@ Si algo no aplica, dejá el arreglo vacío. No inventes datos que no estén en l
   }
   if (!summary) {
     return new Response("No se pudo generar el resumen", { status: 500 });
+  }
+
+  // Saludo con el nombre real de la cuenta (determinístico). Usamos un saludo
+  // neutro en cuanto al género para no arriesgar tratamiento incorrecto.
+  if (name) {
+    const hola: Record<string, string> = { es: "Hola", en: "Hi", pt: "Olá" };
+    const g = hola[summary.idioma ?? ""] || "Hola";
+    summary.saludo = `${g} ${name},`;
   }
 
   // URL pública fija para el logo (el origin del request en local es localhost,
