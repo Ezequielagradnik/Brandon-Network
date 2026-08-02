@@ -2,7 +2,18 @@ import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
-  return await updateSession(request);
+  const res = await updateSession(request);
+  // Hardening de seguridad. Nota: no ponemos una CSP estricta (script/style-src)
+  // para no romper el runtime de Next; solo frame-ancestors contra clickjacking.
+  res.headers.set("X-Frame-Options", "DENY");
+  res.headers.set("X-Content-Type-Options", "nosniff");
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()",
+  );
+  res.headers.set("Content-Security-Policy", "frame-ancestors 'none'");
+  return res;
 }
 
 export const config = {

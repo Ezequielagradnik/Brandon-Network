@@ -58,17 +58,28 @@ async function googleNews(): Promise<News[]> {
     if (!r.ok) return [];
     const xml = await r.text();
     const items = xml.split("<item>").slice(1);
+    // Regex literales por tag: sin RegExp dinámico (evita ReDoS y warnings).
+    const TAG_RE: Record<string, RegExp> = {
+      title: /<title[^>]*>([\s\S]*?)<\/title>/,
+      source: /<source[^>]*>([\s\S]*?)<\/source>/,
+      link: /<link[^>]*>([\s\S]*?)<\/link>/,
+      pubDate: /<pubDate[^>]*>([\s\S]*?)<\/pubDate>/,
+    };
     const pick = (block: string, tag: string) => {
-      const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`));
+      const re = TAG_RE[tag];
+      const m = re ? block.match(re) : null;
       return m ? m[1].replace(/<!\[CDATA\[|\]\]>/g, "").trim() : "";
     };
     return items
       .map((block) => {
         const rawTitle = pick(block, "title");
         const source = pick(block, "source");
-        const title = source
-          ? rawTitle.replace(new RegExp(` - ${source}$`), "")
-          : rawTitle;
+        // Sacamos el sufijo " - Fuente" sin regex (evita ReDoS/regex frágil).
+        const suffix = ` - ${source}`;
+        const title =
+          source && rawTitle.endsWith(suffix)
+            ? rawTitle.slice(0, -suffix.length)
+            : rawTitle;
         const link = pick(block, "link");
         const pub = pick(block, "pubDate");
         const time = pub ? Math.floor(Date.parse(pub) / 1000) : 0;
