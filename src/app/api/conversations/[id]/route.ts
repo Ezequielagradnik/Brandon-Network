@@ -17,7 +17,7 @@ export async function GET(
     .eq("conversation_id", id)
     .order("created_at", { ascending: true });
 
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ messages: data ?? [] });
 }
 
@@ -40,7 +40,7 @@ export async function PATCH(
     .from("conversations")
     .update({ title })
     .eq("id", id);
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ ok: true });
 }
 
@@ -56,6 +56,6 @@ export async function DELETE(
   if (!user) return new Response("Unauthorized", { status: 401 });
 
   const { error } = await supabase.from("conversations").delete().eq("id", id);
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ ok: true });
 }

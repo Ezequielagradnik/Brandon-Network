@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     .select("id, sender, body, created_at")
     .single();
 
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
 
   // TODO (fase 2): reenviar a WhatsApp de Brandon vía Cloud API de Meta.
 
@@ -88,7 +88,7 @@ export async function PATCH(req: Request) {
     .eq("id", id)
     .select("id, sender, body, created_at")
     .single();
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ message: data });
 }
 
@@ -112,6 +112,6 @@ export async function DELETE(req: Request) {
   if (!admin) return new Response("Forbidden", { status: 403 });
 
   const { error } = await admin.from("support_messages").delete().eq("id", id);
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ ok: true, id });
 }

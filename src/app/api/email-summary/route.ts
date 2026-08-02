@@ -1,7 +1,19 @@
+import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
+
+const EmailInput = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      }),
+    )
+    .min(1),
+});
 
 const anthropic = new Anthropic();
 
@@ -121,13 +133,9 @@ export async function POST(req: Request) {
 
   let messages: Msg[];
   try {
-    const body = await req.json();
-    messages = body.messages;
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return new Response("messages requerido", { status: 400 });
-    }
+    messages = EmailInput.parse(await req.json()).messages;
   } catch {
-    return new Response("JSON inválido", { status: 400 });
+    return new Response("Datos inválidos", { status: 400 });
   }
 
   const transcript = messages
@@ -194,8 +202,8 @@ Si algo no aplica, dejá el arreglo vacío. No inventes datos que no estén en l
   });
 
   if (!res.ok) {
-    const detail = await res.text();
-    return new Response(`Error al enviar: ${res.status} ${detail}`, {
+    console.error("Resend error:", res.status, await res.text());
+    return new Response("No se pudo enviar el correo. Probá de nuevo.", {
       status: 502,
     });
   }

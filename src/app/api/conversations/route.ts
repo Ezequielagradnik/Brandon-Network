@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     .order("updated_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({
     conversations: data ?? [],
     hasMore: (data?.length ?? 0) === limit,
@@ -40,6 +40,6 @@ export async function POST(req: Request) {
     .select("id")
     .single();
 
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ id: data.id });
 }

@@ -23,7 +23,7 @@ export async function POST(
 
   if (rows.length) {
     const { error } = await supabase.from("messages").insert(rows);
-    if (error) return new Response(error.message, { status: 500 });
+    if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   }
   await supabase
     .from("conversations")

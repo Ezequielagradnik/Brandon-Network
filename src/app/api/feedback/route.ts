@@ -1,5 +1,11 @@
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+const FeedbackInput = z.object({
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(1000).optional().default(""),
+});
 
 export const maxDuration = 15;
 
@@ -92,7 +98,7 @@ export async function PATCH(req: Request) {
     .from("feedback")
     .update({ status })
     .eq("id", id);
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ ok: true });
 }
 
@@ -106,13 +112,12 @@ export async function POST(req: Request) {
   let title: string;
   let description: string;
   try {
-    const body = await req.json();
-    title = String(body.title ?? "").trim();
-    description = String(body.description ?? "").trim();
+    const parsed = FeedbackInput.parse(await req.json());
+    title = parsed.title;
+    description = parsed.description ?? "";
   } catch {
-    return new Response("JSON inválido", { status: 400 });
+    return new Response("Datos inválidos", { status: 400 });
   }
-  if (!title) return new Response("Falta el título", { status: 400 });
 
   const { data, error } = await supabase
     .from("feedback")
@@ -124,7 +129,7 @@ export async function POST(req: Request) {
     .select("id")
     .single();
 
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ id: data.id });
 }
 
@@ -153,6 +158,6 @@ export async function DELETE(req: Request) {
 
   const admin = createAdminClient();
   const { error } = await admin.from("feedback").delete().eq("id", id);
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ ok: true });
 }

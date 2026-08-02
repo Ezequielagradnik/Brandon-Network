@@ -38,6 +38,6 @@ export async function POST(req: Request) {
   const { error } = await supabase
     .from("feedback_votes")
     .insert({ feedback_id: feedbackId, user_id: user.id });
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) return new Response(process.env.NODE_ENV === "development" ? error.message : "Error interno del servidor", { status: 500 });
   return Response.json({ voted: true });
 }
