@@ -63,9 +63,22 @@ npm audit --omit=dev
 7. **Rate limiting**: en los endpoints que cuestan (IA, email, APIs pagas) para evitar abuso de costo.
 8. **Exposición de datos**: no loguear secretos. Errores genéricos al cliente; el detalle solo en logs del server.
 9. **Dependencias**: `npm audit`. Parchear transitivas con `overrides` en `package.json`.
+   Al actualizar o agregar deps, esperar al menos una semana desde el publish de
+   la versión nueva antes de adoptarla: los ataques de supply chain se detectan
+   en horas o días, y las versiones recién publicadas son las riesgosas
+   (chequear la fecha con `npm view <paquete> time`). Instalar siempre con
+   `npm ci` cuando no se cambian deps. El `.npmrc` del repo tiene
+   `ignore-scripts=true` para que ninguna dependencia ejecute código al
+   instalarse; no borrarlo.
 10. **Headers**: `X-Frame-Options: DENY`, `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`.
 
-## Estado actual (auditoría del 2026-08-02)
+## Estado actual (auditoría del 2026-08-02, revalidada 2026-08-05)
+
+- **2026-08-05**: verificado contra el supply chain attack de `keyv` y
+  relacionados (4 de agosto). Ninguno de los paquetes comprometidos está en el
+  lockfile ni en `node_modules`, cero hooks de `postinstall` en dependencias,
+  lockfile 100% apuntando a `registry.npmjs.org`. Se agregó `.npmrc` con
+  `ignore-scripts=true`.
 
 - `npm audit`: **0 vulnerabilidades**.
 - Semgrep (auto + OWASP + Next + React + secrets): **0 findings**.
